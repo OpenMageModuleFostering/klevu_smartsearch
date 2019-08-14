@@ -1,7 +1,12 @@
 <?php /** @var Mage_Core_Block_Template $this */ ?>
 <?php $config = Mage::helper('klevu_search/config'); ?>
 <?php $helper = Mage::helper('klevu_search'); ?>
-<?php if ($config->isExtensionConfigured()): ?>
+<?php if ($config->isExtensionConfigured()): 
+if(Mage::app()->getStore()->isFrontUrlSecure()) {
+    $url = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK,true);
+} else { 
+    $url = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK);
+} ?>
 <script type="text/javascript">
     var allInputs = document.getElementsByTagName( 'input' );
     var klevu_current_version = '<?php  echo Mage::getConfig()->getModuleConfig('Klevu_Search')->version; ?>';
@@ -38,7 +43,7 @@
                     var search_input = allInputs[i];
                     search_input.stopObserving('click');
                     search_input.stopObserving('keydown');
-                    search_input.form.action='<?php echo Mage::getBaseUrl(); ?>' + "search";//?q="+search_input.value;
+                    search_input.form.action='<?php echo $url; ?>' + "search";//?q="+search_input.value;
                     search_input.form.observe('submit', function (e) {
                         //if(search_input.value.length!= 0){
                             //Event.stop(e);
@@ -50,7 +55,7 @@
         }
         
     })();
-     var klevu_storeLandingPageUrl = '<?php echo Mage::getBaseUrl(); ?>' + "search";
+     var klevu_storeLandingPageUrl = '<?php echo $url; ?>' + "search";
      var klevu_showQuickSearchOnEnter=false;
     <?php } else if($config->isLandingEnabled()==1) { ?>
     (function () {

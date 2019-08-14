@@ -108,7 +108,7 @@ class Klevu_Search_Model_Observer extends Varien_Object {
                             if(file_exists($imageResized)) {
                                 if (!unlink('media/klevu_images'. $image))
                                 {
-                                    Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("Image Deleting Error:\n%s", $e->getMessage()));  
+                                    Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("Image Deleting Error:\n%s", $image));  
                                 }
                             }
                             Mage::getModel("klevu_search/product_sync")->thumbImageObj($baseImageUrl,$imageResized);

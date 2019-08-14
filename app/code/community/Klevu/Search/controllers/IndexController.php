@@ -6,23 +6,22 @@ class Klevu_Search_IndexController extends Mage_Core_Controller_Front_Action {
     
     public function IndexAction() {
       
-	  $this->loadLayout();   
-	  $this->getLayout()->getBlock("head")->setTitle($this->__("Search"));
-	        $breadcrumbs = $this->getLayout()->getBlock("breadcrumbs");
-      $breadcrumbs->addCrumb("home", array(
+	    $this->loadLayout();   
+	    $this->getLayout()->getBlock("head")->setTitle($this->__("Search"));
+	    if($breadcrumbs = $this->getLayout()->getBlock("breadcrumbs")) {
+            $breadcrumbs->addCrumb("home", array(
                 "label" => $this->__("Home"),
                 "title" => $this->__("Home"),
                 "link"  => Mage::getBaseUrl()
 		   ));
 
-      $breadcrumbs->addCrumb("Search Result", array(
+            $breadcrumbs->addCrumb("Search Result", array(
                 "label" => $this->__("Search Result"),
                 "title" => $this->__("Search Result")
 		   ));
-
-      $this->renderLayout(); 
-	  
-    }  
+        }
+        $this->renderLayout(); 
+    }
 
     public function runexternalylogAction()
     {

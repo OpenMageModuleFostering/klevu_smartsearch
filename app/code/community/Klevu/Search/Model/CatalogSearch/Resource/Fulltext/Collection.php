@@ -193,9 +193,12 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
             if ($item['parent_id'] > 0) {
                 /** @var Mage_Catalog_Model_Product $parent */
                 $parent = $this->_items[$item['parent_id']];
+                
                 /** @var Mage_Catalog_Model_Product $child */
-                $child = $this->_items[$item['product_id']];
-
+                $child = '';
+                if (isset($this->_items[$item['product_id']])) {
+                 $child = $this->_items[$item['product_id']];
+                }
                 // Parent isn't visible. Unset both child and parent products and skip.
                 if (!$parent || !$this->_isProductVisible($parent)) {
                     unset($this->_items[$item['parent_id']], $this->_items[$item['product_id']]);
