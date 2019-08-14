@@ -1062,8 +1062,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 									$product[$key] = $item->getData($attribute);
 									break;
 								} else {
-									$product[$key] = $parent->getData($attribute);
-									break;
+                                    if ($parent && $parent->getData($attribute)) {
+                                        $product[$key] = $parent->getData($attribute);
+                                        break;
+                                    }
 								}
 							}
                         }
@@ -2623,6 +2625,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */
     protected function addcategoryData(&$pages)
     {
+        $config = Mage::helper('klevu_search/config');
         $category_ids = array();
         foreach($pages as $key => $value) {
             $category_ids[] = $value["category_id"];
