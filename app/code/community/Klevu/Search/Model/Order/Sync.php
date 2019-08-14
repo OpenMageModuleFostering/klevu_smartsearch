@@ -35,6 +35,15 @@ class Klevu_Search_Model_Order_Sync extends Klevu_Search_Model_Sync {
         }
 
         $items = array();
+		$order_date = Mage::helper("klevu_search/compat")->now();
+		$session_id = session_id();
+		$ip_address = Mage::helper("klevu_search")->getIp();
+		$order_email = 'unknown';
+		if($order->getCustomerId()){
+           $order_email = $order->getCustomer()->getEmail(); //logged in customer
+		} else{
+		   $order_email = $order->getBillingAddress()->getEmail(); //not logged in customer
+		}
         foreach ($order->getAllVisibleItems() as $item) {
             /** @var Mage_Sales_Model_Order_Item $item */
 
@@ -42,12 +51,12 @@ class Klevu_Search_Model_Order_Sync extends Klevu_Search_Model_Sync {
             if ($item->getProductType() == Mage_Catalog_Model_Product_Type_Configurable::TYPE_CODE) {
                 foreach ($item->getChildrenItems() as $child) {
                     if($child->getId()!=null) {
-                        $items[] = $child->getId();
+                        $items[] =  array($child->getId(),$session_id,$ip_address,$order_date,$order_email);
                     }
                 }
             } else {
                 if($item->getId()!=null) {
-                        $items[] = $item->getId();
+                        $items[] =  array($item->getId(),$session_id,$ip_address,$order_date,$order_email);
                 }
                 
             }
@@ -109,18 +118,19 @@ class Klevu_Search_Model_Order_Sync extends Klevu_Search_Model_Sync {
                     $item = Mage::getModel("sales/order_item");
 
                     $stmt = $this->getConnection()->query($this->getSyncQueueSelect());
-                    while ($item_id = $stmt->fetchColumn()) {
+					$itemsToSend = $stmt->fetchAll();
+                    foreach ($itemsToSend as $key => $value) {
                         if ($this->rescheduleIfOutOfMemory()) {
                             return;
                         }
 
                         $item->setData(array());
-                        $item->load($item_id);
+                        $item->load($value['order_item_id']);
 
                         if ($item->getId()) {
                             if ($this->isEnabled($item->getStoreId())) {
                                 if ($this->getApiKey($item->getStoreId())) {
-                                        $result = $this->sync($item);
+                                        $result = $this->sync($item,$value['klevu_session_id'],$value['ip_address'],$value['date'],$value['email']);
                                         if ($result === true) {
                                             $this->removeItemFromQueue($item_id);
                                             $items_synced++;
@@ -166,7 +176,7 @@ class Klevu_Search_Model_Order_Sync extends Klevu_Search_Model_Sync {
      *
      * @return bool|string
      */
-    protected function sync($item) {
+    protected function sync($item,$sess_id,$ip_address,$order_date,$order_email) {
         if (!$this->getApiKey($item->getStoreId())) {
             return "Klevu Search is not configured for this store.";
         }
@@ -185,7 +195,12 @@ class Klevu_Search_Model_Order_Sync extends Klevu_Search_Model_Sync {
             "klevu_unit"      => $item->getQtyOrdered() ? $item->getQtyOrdered() : ($parent ? $parent->getQtyOrdered() : null),
             "klevu_salePrice" => $item->getPriceInclTax() ? $item->getPriceInclTax() : ($parent ? $parent->getPriceInclTax() : null),
             "klevu_currency"  => $this->getStoreCurrency($item->getStoreId()),
-            "klevu_shopperIP" => $this->getOrderIP($item->getOrderId())
+            "klevu_shopperIP" => $ip_address,
+			"klevu_sessionId" => $sess_id,
+			"klevu_orderDate" => $order_date,
+			"klevu_emailId" => $order_email,
+			"klevu_storeTimezone" => Mage::helper("klevu_search")->getStoreTimeZone($item->getStoreId()),
+			"klevu_clientIp" => $this->getOrderIP($item->getOrderId())
         ));
 
         if ($response->isSuccessful()) {
@@ -309,7 +324,7 @@ class Klevu_Search_Model_Order_Sync extends Klevu_Search_Model_Sync {
 
         return $this->getConnection()->insertArray(
             $this->getTableName("klevu_search/order_sync"),
-            array("order_item_id"),
+            array("order_item_id","klevu_session_id","ip_address","date","email"),
             $order_item_ids
         );
     }

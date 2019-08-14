@@ -22,6 +22,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_ORDER_SYNC_FREQUENCY = "klevu_search/order_sync/frequency";
     const XML_PATH_ORDER_SYNC_LAST_RUN = "klevu_search/order_sync/last_run";
     const XML_PATH_FORCE_LOG = "klevu_search/developer/force_log";
+    const XML_PATH_ENABLE_EXTERNAL_CALL = "klevu_search/developer/enable_external_call";
     const XML_PATH_LOG_LEVEL = "klevu_search/developer/log_level";
     const XML_PATH_STORE_ID = "stores/%s/system/store/id";
     const XML_PATH_HOSTNAME = "klevu_search/general/hostname";
@@ -39,6 +40,8 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_RATING = "klevu_search/general/rating_flag";
     const XML_PATH_UPGRADE_FEATURES = "klevu_search/general/upgrade_features";
     const XML_PATH_UPGRADE_TIRES_URL = "klevu_search/general/tiers_url";
+	const XML_PATH_CONFIG_IMAGE_FLAG = "klevu_search/image_setting/enabled";
+	const XML_PATH_CONFIG_SYNC_FREQUENCY = "klevu_search/product_sync/frequency";
 
     const DATETIME_FORMAT = "Y-m-d H:i:s T";
     protected $_klevu_features_response;
@@ -77,7 +80,10 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
      * @return bool
      */
     public function isTaxEnabled($store_id = null) {
-        return Mage::getStoreConfigFlag(static::XML_PATH_TAX_ENABLED, $store_id);
+        $flag =  Mage::getStoreConfig(static::XML_PATH_TAX_ENABLED, $store_id);
+        return in_array($flag, array(
+                Klevu_Search_Model_System_Config_Source_Taxoptions::YES
+        ));
     }
     
     /**
@@ -135,10 +141,10 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
      * @return $this
      */
     public function setTaxEnabledFlag($flag, $store = null) {
-    
-        $flag = ($flag) ? 1 : 0;
+        //$flag = ($flag) ? 1 : 0;
         $this->setStoreConfig(static::XML_PATH_TAX_ENABLED, $flag, $store);
         return $this;
+        
     }
     
     /**
@@ -424,6 +430,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
      * @return bool
      */
     public function isProductSyncEnabled($store_id = null) {
+
         $flag = $this->getProductSyncEnabledFlag($store_id);
 
         // static::KLEVU_PRODUCT_FORCE_OLDERVERSION for handling of older version of klevu 
@@ -591,6 +598,16 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     public function isLoggingForced() {
         return Mage::getStoreConfigFlag(static::XML_PATH_FORCE_LOG);
     }
+    
+    /**
+     * Check if KLEVU can sync data by exteranl url.
+     *
+     * @return bool
+     */
+    public function isExternalCallEnabled() {
+        return Mage::getStoreConfigFlag(static::XML_PATH_ENABLE_EXTERNAL_CALL);
+    }
+
 
     /**
      * Return the minimum log level configured. Default to Zend_Log::WARN.
@@ -758,7 +775,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     /**
      * get feature update
      *
-     * @return bool 
+     * @return string 
      */
     public function getFeaturesUpdate($elemnetID) {
         try {
@@ -820,4 +837,28 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
         $this->setStoreConfig(static::XML_PATH_UPGRADE_FEATURES,$value,$store);
     }
     
+	/**
+     * Return the configuration flag for sending config image.
+     *
+     * @param Mage_Core_Model_Store|int $store
+     *
+     * @return bool
+     */
+	public function isUseConfigImage($store=null){
+		return Mage::getStoreConfigFlag(static::XML_PATH_CONFIG_IMAGE_FLAG, $store);
+	}
+	
+	
+    /**
+     * Return the klevu cron stettings.
+     *
+     * @return bool
+     */
+	public function isExternalCronEnabled(){
+		if(Mage::getStoreConfig(static::XML_PATH_CONFIG_SYNC_FREQUENCY) == "0 5 31 2 *") {
+			return false;
+		} else {
+			return true;
+		}
+	}
 }

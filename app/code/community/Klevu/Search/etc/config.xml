@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Klevu_Search>
-            <version>1.2.1</version>
+            <version>1.2.10</version>
         </Klevu_Search>
     </modules>
     <global>
@@ -58,6 +58,24 @@
                     </klevu_search_removetest>
                 </observers>
             </admin_system_config_changed_section_klevu_search>
+			<catalogrule_rule_save_commit_after>
+			    <observers>
+                    <klevu_search_catalogrule_change>
+                        <type>singleton</type>
+                        <class>klevu_search/observer</class>
+                        <method>catalogRulePriceChange</method>
+                    </klevu_search_catalogrule_change>
+                </observers>
+			</catalogrule_rule_save_commit_after>
+			<catalogrule_rule_delete_before>
+			    <observers>
+                    <klevu_search_catalogrule_delete_before>
+                        <type>singleton</type>
+                        <class>klevu_search/observer</class>
+                        <method>catalogRulePriceChange</method>
+                    </klevu_search_catalogrule_delete_before>
+                </observers>
+			</catalogrule_rule_delete_before>			
             <controller_action_predispatch_catalogsearch_result_index>
                         <observers>
                             <klevu_search_landing_page>
@@ -208,7 +226,7 @@
                     <catalogruleexpiryupdatebefore>
                         <type>singleton</type> 
                         <class>klevu_search/product_sync</class>
-                        <method>catalogruleupdateifno</method>
+                        <method>catalogruleUpdateinfo</method>
                     </catalogruleexpiryupdatebefore>
                 </observers>
             </catalogrule_before_apply>
@@ -217,10 +235,19 @@
                     <catalogruleexpiryupdateafter>
                         <type>singleton</type> 
                         <class>klevu_search/product_sync</class>
-                        <method>catalogruleupdateifno</method>
+                        <method>catalogruleUpdateinfo</method>
                     </catalogruleexpiryupdateafter>
                 </observers>
             </catalogrule_after_apply>
+			<cataloginventory_stock_item_save_commit_after>
+			    <observers>
+                    <cataloginventory_stock_item_update>
+                        <type>singleton</type> 
+                        <class>klevu_search/observer</class>
+                        <method>updateStock</method>
+                    </cataloginventory_stock_item_update>
+                </observers>
+			</cataloginventory_stock_item_save_commit_after>
         </events>
     </global>
     <admin>
@@ -319,11 +346,15 @@
             </order_sync>
             <developer>
                 <force_log>1</force_log>
+                <enable_external_call>0</enable_external_call>
                 <!-- Log level default is set in the backend model and getter as it uses Zend_Log constants -->
             </developer>
             <order_sync>
                 <enabled>1</enabled>
             </order_sync>
+			<image_setting>
+				<enabled>0</enabled>
+			</image_setting>
         </klevu_search>
     </default>
     <phpunit>

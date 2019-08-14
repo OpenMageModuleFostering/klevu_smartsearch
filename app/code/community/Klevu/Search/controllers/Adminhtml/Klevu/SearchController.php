@@ -17,9 +17,14 @@ class Klevu_Search_Adminhtml_Klevu_SearchController extends Mage_Adminhtml_Contr
         if (Mage::helper('klevu_search/config')->isProductSyncEnabled()) {
             
             if(Mage::helper('klevu_search/config')->getSyncOptionsFlag() == "2") {
-                Mage::getModel('klevu_search/product_sync')
+				if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
+                    Mage::getModel('klevu_search/product_sync')
                     ->markAllProductsForUpdate($store)
                     ->schedule();
+				} else {
+					 Mage::getModel('klevu_search/product_sync')
+                    ->markAllProductsForUpdate($store);
+				}
 
                 if ($store) {
                     Mage::helper("klevu_search")->log(Zend_Log::INFO, sprintf("Product Sync scheduled to re-sync ALL products in %s (%s).",
@@ -67,7 +72,15 @@ class Klevu_Search_Adminhtml_Klevu_SearchController extends Mage_Adminhtml_Contr
             Mage::getModel("klevu_search/product_sync")->run();
             /* Use event For other content sync */
             Mage::dispatchEvent('content_data_to_sync', array());
-            Mage::getSingleton('adminhtml/session')->addSuccess($this->__("Data updates have been sent to Klevu"));
+			$memoryMessage = Mage::getSingleton('core/session')->getMemoryMessage();
+			if(!empty($memoryMessage)) {
+				$message = $this->__("Data updates have been sent to Klevu.").$memoryMessage;
+				Mage::getSingleton('core/session')->setMemoryMessage("");
+			} else {
+				$message = $this->__("Data updates have been sent to Klevu.");
+			}
+            Mage::getSingleton('adminhtml/session')->addSuccess($message);
+			
         } catch (Mage_Core_Model_Store_Exception $e) {
             Mage::logException($e);
         }
@@ -80,6 +93,13 @@ class Klevu_Search_Adminhtml_Klevu_SearchController extends Mage_Adminhtml_Contr
     public function save_sync_options_configAction() {
         $sync_options = $this->getRequest()->getParam("sync_options");
         Mage::helper('klevu_search/config')->saveSyncOptions($sync_options);
+    }
+    
+    /* clear the cron entry */
+    public function clear_klevu_cronAction() {
+        Mage::getModel("klevu_search/product_sync")->clearKlevuCron();
+        Mage::getSingleton('adminhtml/session')->addSuccess($this->__("Running Klevu product Sync entry cleared from cron_schedule table."));
+        return $this->_redirectReferer("adminhtml/dashboard");
     }
     
     protected function _isAllowed()

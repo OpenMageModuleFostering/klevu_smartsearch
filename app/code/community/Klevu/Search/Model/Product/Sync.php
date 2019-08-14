@@ -119,47 +119,76 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 $this->log(Zend_Log::INFO, sprintf("Starting sync for %s (%s).", $store->getWebsite()->getName(), $store->getName()));
 
                 $actions = array(
-                    'delete' => $this->getConnection()
+                    'delete' => 
+					$this->getConnection()
                         ->select()
-                        /*
-                         * Select synced products in the current store/mode that are no longer enabled
-                         * (don't exist in the products table, or have status disabled for the current
-                         * store, or have status disabled for the default store) or are not visible
-                         * (in the case of configurable products, check the parent visibility instead).
-                         */
-                        ->from(
-                            array('k' => $this->getTableName("klevu_search/product_sync")),
-                            array('product_id' => "k.product_id", 'parent_id' => "k.parent_id")
-                        )
-                        ->joinLeft(
-                            array('v' => $this->getTableName("catalog/category_product_index")),
-                            "v.product_id = k.product_id AND v.store_id = :store_id",
-                            ""
-                        )
-                        ->joinLeft(
-                            array('p' => $this->getTableName("catalog/product")),
-                            "p.entity_id = k.product_id",
-                            ""
-                        )
-                        ->joinLeft(
-                            array('ss' => $this->getProductStatusAttribute()->getBackendTable()),
-                            "ss.attribute_id = :status_attribute_id AND ss.entity_id = k.product_id AND ss.store_id = :store_id",
-                            ""
-                        )
-                        ->joinLeft(
-                            array('sd' => $this->getProductStatusAttribute()->getBackendTable()),
-                            "sd.attribute_id = :status_attribute_id AND sd.entity_id = k.product_id AND sd.store_id = :default_store_id",
-                            ""
-                        )
-                        ->where("(k.store_id = :store_id) AND (k.type = :type) AND (k.test_mode = :test_mode) AND ((p.entity_id IS NULL) OR (CASE WHEN ss.value_id > 0 THEN ss.value ELSE sd.value END != :status_enabled) OR (CASE WHEN k.parent_id = 0 THEN k.product_id ELSE k.parent_id END NOT IN (?)))",
-                            $this->getConnection()
+                        ->union(array(
+							$this->getConnection()
+							->select()
+							/*
+							 * Select synced products in the current store/mode that are no longer enabled
+							 * (don't exist in the products table, or have status disabled for the current
+							 * store, or have status disabled for the default store) or are not visible
+							 * (in the case of configurable products, check the parent visibility instead).
+							 */
+							->from(
+								array('k' => $this->getTableName("klevu_search/product_sync")),
+								array('product_id' => "k.product_id", 'parent_id' => "k.parent_id")
+							)
+							->joinLeft(
+								array('v' => $this->getTableName("catalog/category_product_index")),
+								"v.product_id = k.product_id AND v.store_id = :store_id",
+								""
+							)
+							->joinLeft(
+								array('p' => $this->getTableName("catalog/product")),
+								"p.entity_id = k.product_id",
+								""
+							)
+							->joinLeft(
+								array('ss' => $this->getProductStatusAttribute()->getBackendTable()),
+								"ss.attribute_id = :status_attribute_id AND ss.entity_id = k.product_id AND ss.store_id = :store_id",
+								""
+							)
+							->joinLeft(
+								array('sd' => $this->getProductStatusAttribute()->getBackendTable()),
+								"sd.attribute_id = :status_attribute_id AND sd.entity_id = k.product_id AND sd.store_id = :default_store_id",
+								""
+							)
+							->where("(k.store_id = :store_id) AND (k.type = :type) AND (k.test_mode = :test_mode) AND ((p.entity_id IS NULL) OR (CASE WHEN ss.value_id > 0 THEN ss.value ELSE sd.value END != :status_enabled) OR (CASE WHEN k.parent_id = 0 THEN k.product_id ELSE k.parent_id END NOT IN (?)) )",
+								$this->getConnection()
+									->select()
+									->from(
+										array('i' => $this->getTableName("catalog/category_product_index")),
+										array('id' => "i.product_id")
+									)
+									->where("(i.store_id = :store_id) AND (i.visibility IN (:visible_both, :visible_search))")
+								
+							),
+							$this->getConnection()
                                 ->select()
+                                /*
+                                 * Select products which are not associated with parent 
+                                 * but still parent exits in klevu product sync table with parent id
+                                 * 
+                                 */
                                 ->from(
-                                    array('i' => $this->getTableName("catalog/category_product_index")),
-                                    array('id' => "i.product_id")
+                                    array('ks' => $this->getTableName("klevu_search/product_sync")),
+                                    array('product_id' => "ks.product_id","parent_id" => 'ks.parent_id')
                                 )
-                                ->where("(i.store_id = :store_id) AND (i.visibility IN (:visible_both, :visible_search))")
-                        )
+								->where("(ks.parent_id !=0 AND ks.product_id NOT IN (?) AND ks.store_id = :store_id)",
+									$this->getConnection()
+									->select()
+									/*
+									 * Select products from catalog super link table
+									 */
+									->from(
+										array('s' => $this->getTableName("catalog/product_super_link")),
+										array('product_id' => "s.product_id")
+									)
+								)
+							)
+					    )		
                         ->group(array('k.product_id', 'k.parent_id'))
                         ->bind(array(
                             'type'          => "products",
@@ -256,7 +285,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             'status_enabled' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED,
                         )),
 
-                    'add' => $this->getConnection()
+                     'add' => $this->getConnection()
                         ->select()
                         ->union(array(
                             // Select non-configurable products that need to be added
@@ -329,6 +358,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             'status_attribute_id' => $this->getProductStatusAttribute()->getId(),
                             'status_enabled' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED
                         ))
+						
                 );
 
                 $errors = 0;
@@ -338,7 +368,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         return;
                     }
                     $method = $action . "Products";
-
                     $products = $this->getConnection()->fetchAll($statement, $statement->getBind());
 
                     $total = count($products);
@@ -389,7 +418,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                     
                 }
                 $config->setLastProductSyncRun("now", $store);
-
+			
                 if ($errors == 0) {
                     // If Product Sync finished without any errors, notifications are not relevant anymore
                     $this->deleteNotifications($store);
@@ -403,33 +432,37 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */
     public function runManually() {
         $time = date_create("now")->format("Y-m-d H:i:s");
-        $schedule = Mage::getModel("cron/schedule");
-        $schedule
+		if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
+            $schedule = Mage::getModel("cron/schedule");
+            $schedule
             ->setJobCode($this->getJobCode())
             ->setCreatedAt($time)
             ->setScheduledAt($time)
             ->setExecutedAt($time)
             ->setStatus(Mage_Cron_Model_Schedule::STATUS_RUNNING)
             ->save();
-
+        }
         try {
             $this->run();
         } catch (Exception $e) {
             Mage::logException($e);
-
-            $schedule
+            
+			if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
+                $schedule
                 ->setMessages($e->getMessage())
                 ->setStatus(Mage_Cron_Model_Schedule::STATUS_ERROR)
                 ->save();
-
+			}
             return;
         }
 
         $time = date_create("now")->format("Y-m-d H:i:s");
-        $schedule
+		if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
+            $schedule
             ->setFinishedAt($time)
             ->setStatus(Mage_Cron_Model_Schedule::STATUS_SUCCESS)
             ->save();
+		}
 
         return;
     }
@@ -572,7 +605,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         $store->getWebsite()->getName(),
                         $store->getName(),
                         $response->getMessage()
-                    )
+                    ),$store
                 );
             }
 
@@ -622,14 +655,14 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 if (isset($skipped_record_ids[$i])) {
                     continue;
                 }
-                $or_where[] = sprintf("(%s AND %s)",
+                $or_where[] = sprintf("(%s AND %s AND %s)",
                     $connection->quoteInto("k.product_id = ?", $data[$i]['product_id']),
                     $connection->quoteInto("k.parent_id = ?", $data[$i]['parent_id']),
                     $connection->quoteInto("k.type = ?", "products")
                 );
             }
+			
             $select->where(implode(" OR ", $or_where));
-
             $connection->query($select->deleteFromSelect("k"));
 
             $skipped_count = count($skipped_record_ids);
@@ -663,7 +696,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */
     protected function updateProducts(array $data) {
         $total = count($data);
-        $this->addProductSyncData($data);
+        $dataToSend = $this->addProductSyncData($data);
+		if(!empty($dataToSend) && is_numeric($dataToSend)){
+		    $data = array_slice($data, 0, $dataToSend);
+		}
         $response = Mage::getModel('klevu_search/api_action_updaterecords')
             ->setStore($this->getStore())
             ->execute(array(
@@ -738,7 +774,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */
     protected function addProducts(array $data) {
         $total = count($data);
-        $this->addProductSyncData($data);
+        $dataToSend = $this->addProductSyncData($data);
+		if(!empty($dataToSend) && is_numeric($dataToSend)){
+		    $data = array_slice($data, 0, $dataToSend);
+		}
         $response = Mage::getModel('klevu_search/api_action_addrecords')
             ->setStore($this->getStore())
             ->execute(array(
@@ -820,7 +859,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         }
         $product_ids = array_unique($product_ids);
         $parent_ids = array_unique($parent_ids);
-
         $data = Mage::getModel('catalog/product')->getCollection()
             ->addIdFilter($product_ids)
             ->setStore($this->getStore())
@@ -848,15 +886,27 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         }
         $currency = $this->getStore()->getDefaultCurrencyCode();
         $media_url .= Mage::getModel('catalog/product_media_config')->getBaseMediaUrlAddition();
-        Mage::app()->loadAreaPart(Mage_Core_Model_App_Area::AREA_FRONTEND,Mage_Core_Model_App_Area::PART_EVENTS);  
+        Mage::app()->loadAreaPart(Mage_Core_Model_App_Area::AREA_FRONTEND,Mage_Core_Model_App_Area::PART_EVENTS);
+		$rc = 0;
         foreach ($products as $index => &$product) {
+			
+			if($rc % 5 == 0) {
+				if ($this->rescheduleIfOutOfMemory()) {
+                    return $rc;
+				}
+			}
+			
             //$item = $data->getItemById($product['product_id']);
             $item = Mage::getModel('catalog/product')->load($product['product_id']);
             $item->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID);
-           
+			
+			
+			
+			$this->log(Zend_Log::DEBUG, sprintf("Retrieve data for product ID %d", $product['product_id']));
             //$parent = ($product['parent_id'] != 0) ?  $data->getItemById($product['parent_id']) : null;
             $parent = ($product['parent_id'] != 0) ? Mage::getModel('catalog/product')->load($product['parent_id'])->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID): null;
-            
+			$this->log(Zend_Log::DEBUG, sprintf("Retrieve data for product ID Parent ID %d", $product['parent_id']));
+
             if (!$item) {
                 // Product data query did not return any data for this product
                 // Remove it from the list to skip syncing it
@@ -933,14 +983,26 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         }
                         break;
                     case "image":
+					    $config = Mage::helper('klevu_search/config');
                         foreach ($attributes as $attribute) {
-                            if ($item->getData($attribute) && $item->getData($attribute) != "no_selection") {
-                                $product[$key] = $item->getData($attribute);
-                                break;
-                            } else if ($parent && $parent->getData($attribute) && $parent->getData($attribute) != "no_selection") {
-                                $product[$key] = $parent->getData($attribute);
-                                break;
-                            }
+							if($config->isUseConfigImage($this->getStore()->getId())) {
+							    if ($parent && $parent->getData($attribute) && $parent->getData($attribute) != "no_selection") {
+									$product[$key] = $parent->getData($attribute);
+									break;
+								} else if ($item->getData($attribute) && $item->getData($attribute) != "no_selection") {
+									$product[$key] = $item->getData($attribute);
+									break;
+								} 
+							} else {
+								if ($item->getData($attribute) && $item->getData($attribute) != "no_selection") {
+									$product[$key] = $item->getData($attribute);
+									break;
+								} else if ($parent && $parent->getData($attribute) && $parent->getData($attribute) != "no_selection") {
+									$product[$key] = $parent->getData($attribute);
+									break;
+								}	
+								
+							}
                         }
                         if ($product[$key] != "" && strpos($product[$key], "http") !== 0) {
                             // Prepend media base url for relative image locations
@@ -970,7 +1032,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         }else {
                             $tax_class_id = "";
                         }
-
+			
                         if ($parent && $parent->getData("type_id") == Mage_Catalog_Model_Product_Type_Configurable::TYPE_CODE) {
                             // Calculate configurable product price based on option values
                             $fprice = $parent->getFinalPrice();
@@ -1011,6 +1073,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 }
                             }
                         }
+						
                         break;
                     case "price":
                             // Default to 0 if price can't be determined
@@ -1070,15 +1133,15 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             // Add non-attribute data
             $product['currency'] = $currency;
 
-            if ($item->getCategoryIds()) {
-                $product['category'] = $this->getLongestPathCategoryName($item->getCategoryIds());
-                $product['listCategory'] = $this->getCategoryNames($item->getCategoryIds());
-            } else if ($parent) {
+            if ($parent) {
                 $product['category'] = $this->getLongestPathCategoryName($parent->getCategoryIds());
                 $product['listCategory'] = $this->getCategoryNames($parent->getCategoryIds());
+			} else if ($item->getCategoryIds()) {
+                $product['category'] = $this->getLongestPathCategoryName($item->getCategoryIds());
+                $product['listCategory'] = $this->getCategoryNames($item->getCategoryIds());
             } else {
                 $product['category'] = "";
-                $product['listCategory'] = "";
+                $product['listCategory'] = "KLEVU_PRODUCT";
             }
             
             
@@ -1118,7 +1181,8 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             }
 
             // Add stock data
-            $product['inStock'] = ($stock_data[$product['product_id']]) ? "yes" : "no";
+			$product['inStock'] = ($stock_data[$product['product_id']]) ? "yes" : "no";
+	
 
             // Configurable product relation
             if ($product['parent_id'] != 0) {
@@ -1127,8 +1191,20 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 
             // Set ID data
             $product['id'] = Mage::helper('klevu_search')->getKlevuProductId($product['product_id'], $product['parent_id']);
+			
+			
+			if($item) {
+			    $item->clearInstance();
+				$item = null;
+			}
+			
+			if($parent) {
+			    $parent->clearInstance();
+				$parent = null;
+			}
             unset($product['product_id']);
             unset($product['parent_id']);
+			$rc++;
         }
 
         return $this;
@@ -1229,10 +1305,11 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         'product_id'   => "s.product_id",
                         'in_stock'     => "s.is_in_stock",
                         'manage_stock' => "s.manage_stock",
-                        'use_config'   => "s.use_config_manage_stock"
+                        'use_config'   => "s.use_config_manage_stock",
                     )
                 )
                 ->where("s.product_id IN (?)", $product_ids)
+				->where("s.stock_id = ?",1)
         );
 
         $data = array();
@@ -1526,14 +1603,13 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         $name = "";
         foreach ($categories as $id) {
             if (isset($category_paths[$id])) {
-                if (count($category_paths[$id]) > $length) {
-                    $length = count($category_paths[$id]);
-                    $name = end($category_paths[$id]);
-                }
+                //if (count($category_paths[$id]) > $length) {
+                    //$length = count($category_paths[$id]);
+                    $name .= end($category_paths[$id]).";";
+                //}
             }
         }
-
-        return $name;
+        return substr($name,0,strrpos($name,";")+1-1);
     }
     
     /**
@@ -1841,7 +1917,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */
     protected function notify($message, $store = null) {
         $type = ($store === null) ? static::NOTIFICATION_GLOBAL_TYPE : static::NOTIFICATION_STORE_TYPE_PREFIX . $store->getId();
-
         /** @var Klevu_Search_Model_Notification $notification */
         $notification = Mage::getResourceModel('klevu_search/notification_collection')
             ->addFieldToFilter("type", array('eq' => $type))
@@ -1867,9 +1942,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */
     protected function deleteNotifications($store = null) {
         $type = ($store === null) ? static::NOTIFICATION_GLOBAL_TYPE : static::NOTIFICATION_STORE_TYPE_PREFIX . $store->getId();
-
         $this->getConnection()->delete($this->getTableName('klevu_search/notification'), array("type = ?" => $type));
-
         return $this;
     }
 
@@ -2092,9 +2165,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */ 
     public function updateSpecificProductIds($ids)
     {
-        $pro_ids = implode(',', $ids);
-        $where = sprintf("product_id IN(%s) OR parent_id IN(%s)", $pro_ids, $pro_ids);
         $resource = Mage::getSingleton('core/resource');
+        $pro_ids = implode(',', $ids);
+        $where = sprintf("(product_id IN(%s) OR parent_id IN(%s)) AND %s", $pro_ids,$pro_ids,$this->getConnection()->quoteInto('type = ?',"products"));
+         
         $resource->getConnection('core_write')->update(
         $resource->getTableName('klevu_search/product_sync'),
                 array('last_synced_at' => '0'),
@@ -2253,6 +2327,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 )
                                 ->where("k.product_id IS NULL")
                                 ->where("c.path LIKE ?","{$rootStoreCategory}%")
+								->group(array('c.entity_id'))
                         ->bind(array(
                             'type' => "categories",
                             'store_id' => $store->getId(),
@@ -2502,7 +2577,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
     }
     
     // Get all products for update
-    public function catalogruleupdateifno(){
+    public function catalogruleUpdateinfo(){
         $timestamp_after = strtotime("+1 day",strtotime(date_create("now")->format("Y-m-d")));
         $timestamp_before = strtotime("-1 day",strtotime(date_create("now")->format("Y-m-d")));
         $query = $this->getConnection()->select()
@@ -2526,4 +2601,43 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             $this->updateSpecificProductIds($pro_ids);
         }
     }
+    
+    /**
+     * Get the klevu cron entry which is running mode
+     * @return int
+     */
+    public function getKlevuCronStatus(){
+        $collection = Mage::getResourceModel('cron/schedule_collection')
+        ->addFieldToFilter("job_code", $this->getJobCode())
+        ->addFieldToFilter("status", Mage_Cron_Model_Schedule::STATUS_RUNNING);
+        if($collection->getSize()){
+            $data = $collection->getData();
+            $url = Mage::getModel('adminhtml/url')->getUrl("adminhtml/klevu_search/clear_klevu_cron");
+            return Mage_Cron_Model_Schedule::STATUS_RUNNING." Since ".$data[0]['executed_at']." <a href='".$url."'>Clear Klevu Cron</a>";
+        } else {
+            $collection = Mage::getResourceModel('cron/schedule_collection')
+            ->addFieldToFilter("job_code", $this->getJobCode())
+            ->addFieldToFilter("status",Mage_Cron_Model_Schedule::STATUS_SUCCESS)
+            ->setOrder('finished_at', 'desc');
+            if($collection->getSize()){
+                $data = $collection->getData();
+                return Mage_Cron_Model_Schedule::STATUS_SUCCESS." ".$data[0]["finished_at"];
+            }
+        }
+        return;
+    }
+    
+    /**
+     * Remove the cron which is in running state
+     * @return void
+     */
+    public function clearKlevuCron(){
+        $condition = array();
+        $condition[] = $this->getConnection()->quoteInto('status = ?', Mage_Cron_Model_Schedule::STATUS_RUNNING);   
+        $condition[] = $this->getConnection()->quoteInto('job_code = ?',$this->getJobCode());
+        $this->getConnection()->delete($this->getTableName("cron_schedule"),$condition);   
+    }
+	
+
+	
 }
