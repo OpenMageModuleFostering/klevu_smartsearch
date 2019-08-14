@@ -195,6 +195,55 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
         return sprintf("%s%s", $parent_sku, $product_sku);
     }
     
+    /**
+     Get Min price for group product.
+     *
+     * @param object $product.
+     *
+     * @return
+     */    
+    public function getGroupProductMinPrice($product,$store){
+        $groupProductIds = $product->getTypeInstance()->getChildrenIds($product->getId());
+        $config = Mage::helper('klevu_search/config');
+        $groupPrices = array();
+            foreach ($groupProductIds as $ids) {
+                foreach ($ids as $id) {
+                    $groupProduct = Mage::getModel('catalog/product')->load($id);
+                    if($config->isTaxEnabled($store->getId())) {
+                        $groupPrices[] = Mage::helper("tax")->getPrice($groupProduct, $groupProduct->getFinalPrice(), true, null, null, null, $store,false);
+                    } else {
+                        $groupPrices[] = $groupProduct->getFinalPrice();
+                    }
+                }
+            }
+        asort($groupPrices);
+        $product->setFinalPrice(array_shift($groupPrices));       
+    }
+    
+    /**
+     * Get Min price for group product.
+     *
+     * @param object $product.
+     *
+     * @return
+     */    
+    public function getBundleProductPrices($item,$store){
+        $config = Mage::helper('klevu_search/config');
+        if($config->isTaxEnabled($store->getId())) {
+            if (version_compare(Mage::getVersion(), "1.6.0.0", "<")) {
+                return $item->getPriceModel()->getPricesDependingOnTax($item,null,true);
+            } else {
+                return $item->getPriceModel()->getTotalPrices($item, null, true, false);
+            }
+        } else {
+            if (version_compare(Mage::getVersion(), "1.6.0.0", "<")) {
+                return $item->getPriceModel()->getPricesDependingOnTax($item,null,null);
+            } else {
+                return $item->getPriceModel()->getTotalPrices($item, null, null, false);
+            }
+        }
+    }
+    
     public function getIp() {
         if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];

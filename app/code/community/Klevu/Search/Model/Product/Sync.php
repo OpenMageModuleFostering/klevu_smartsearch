@@ -71,7 +71,9 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                     $this->updateProductsRating($store);
                     $session->unsFirstSync();
                 }
-
+                //set current store so will get proper bundle price 
+                Mage::app()->setCurrentStore($store->getId());
+                
                 $this->log(Zend_Log::INFO, sprintf("Starting sync for %s (%s).", $store->getWebsite()->getName(), $store->getName()));
 
                 $actions = array(
@@ -793,7 +795,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 
         $url_rewrite_data = $this->getUrlRewriteData($product_ids);
         $visibility_data = $this->getVisibilityData($product_ids);
-        $price_data = $this->getPriceData($product_ids);
         $configurable_price_data = $this->getConfigurablePriceData($parent_ids);
 
         $stock_data = $this->getStockData($product_ids);
@@ -812,9 +813,11 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         $media_url .= Mage::getModel('catalog/product_media_config')->getBaseMediaUrlAddition();
 
         foreach ($products as $index => &$product) {
-            $item = $data->getItemById($product['product_id']);
-            $parent = ($product['parent_id'] != 0) ? $data->getItemById($product['parent_id']) : null;
-
+            //$item = $data->getItemById($product['product_id']);
+            $item = Mage::getModel('catalog/product')->load($product['product_id']);
+             
+            //$parent = ($product['parent_id'] != 0) ?  $data->getItemById($product['parent_id']) : null;
+            $parent = ($product['parent_id'] != 0) ?  Mage::getModel('catalog/product')->load($product['parent_id']) : null;
             if (!$item) {
                 // Product data query did not return any data for this product
                 // Remove it from the list to skip syncing it
@@ -829,7 +832,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 'product'=> &$product,
                 'store' => $this->getStore()
             ));
-            
+
             // Add data from mapped attributes
             foreach ($attribute_map as $key => $attributes) {
                 $product[$key] = null;
@@ -931,21 +934,9 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 
                         if ($parent && $parent->getData("type_id") == Mage_Catalog_Model_Product_Type_Configurable::TYPE_CODE) {
                             // Calculate configurable product price based on option values
-                            $price = (isset($price_data[$product['parent_id']])) ? $price_data[$product['parent_id']]['min_price'] : $parent->getData("price");
-                            $markup = 0;
+                            $fprice = $parent->getFinalPrice();
+                            $price = (isset($fprice)) ? $fprice: $parent->getData("price");
 
-                            /*if (isset($configurable_price_data[$product['parent_id']])) {
-                                foreach ($configurable_price_data[$product['parent_id']] as $attribute => $pricing_data) {
-                                    $value = $item->getData($attribute);
-                                    if ($value && isset($pricing_data[$value])) {
-                                        if ($pricing_data[$value]["is_percent"]) {
-                                            $markup += $price * ($pricing_data[$value]["value"] / 100);
-                                        } else {
-                                            $markup += $pricing_data[$value]["value"];
-                                        }
-                                    }
-                                }
-                            }*/
                             // show low price for config products
                             $product['startPrice'] = $this->processPrice($price , $tax_class_id, $parent);
                             
@@ -954,17 +945,25 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         } else {
                             // Use price index prices to set the product price and start/end prices if available
                             // Falling back to product price attribute if not
-                            if (isset($price_data[$product['product_id']])) {
+                            if ($item) {
+                                
                                 // Always use minimum price as the sale price as it's the most accurate
-                                $product['salePrice'] = $this->processPrice($price_data[$product['product_id']]['min_price'], $tax_class_id, $item);
-                                if ($price_data[$product['product_id']]['min_price'] != $price_data[$product['product_id']]['max_price']) {
-                                    $product['startPrice'] = $this->processPrice($price_data[$product['product_id']]['min_price'], $tax_class_id, $item);
-
-                                    // Maximum price on a grouped product is meaningless as it depends on quantity and items bought
-                                    if ($item->getData('type_id') != Mage_Catalog_Model_Product_Type::TYPE_GROUPED) {
-                                        $product['toPrice'] = $this->processPrice($price_data[$product['product_id']]['max_price'], $tax_class_id, $item);
-                                    }
+                                $product['salePrice'] = $this->processPrice($item->getFinalPrice(), $tax_class_id, $item);
+                                
+                                if ($item->getData('type_id') == Mage_Catalog_Model_Product_Type::TYPE_GROUPED) {
+                                    Mage::helper('klevu_search')->getGroupProductMinPrice($item,$this->getStore());
+                                    $sPrice = $item->getFinalPrice();
+                                    $product['startPrice'] = $this->processPrice($sPrice, $tax_class_id, $item);
+                                    $product["salePrice"] = $this->processPrice($sPrice, $tax_class_id, $item);
                                 }
+                                
+                                if ($item->getData('type_id') == Mage_Catalog_Model_Product_Type::TYPE_BUNDLE) {
+                                    list($minimalPrice, $maximalPrice) = Mage::helper('klevu_search')->getBundleProductPrices($item,$this->getStore());
+                                    $product["salePrice"] = $this->processPrice($minimalPrice, $tax_class_id, $item);
+                                    $product['startPrice'] = $this->processPrice($minimalPrice, $tax_class_id, $item);
+                                    $product['toPrice'] = $this->processPrice($maximalPrice, $tax_class_id, $item);
+                                }
+                                
                             } else {
                                 if ($item->getData("price") !== null) {
                                     $product["salePrice"] = $this->processPrice($item->getData("price"), $tax_class_id, $item);
@@ -1162,40 +1161,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             } else {
                 $data[$row['product_id']] = true;
             }
-        }
-
-        return $data;
-    }
-
-    /**
-     * Return the price information from the price index for the given products.
-     *
-     * @param $product_ids
-     *
-     * @return array
-     */
-    protected function getPriceData($product_ids) {
-        $stmt = $this->getConnection()->query(
-            $this->getConnection()
-                ->select()
-                ->from(
-                    array('p' => $this->getTableName("catalog/product_index_price")),
-                    array(
-                        'product_id'  => "p.entity_id",
-                        'price'       => "p.price",
-                        'final_price' => "p.final_price",
-                        'min_price'   => "p.min_price",
-                        'max_price'   => "p.max_price"
-                    )
-                )
-                ->where("p.website_id = ?", $this->getStore()->getWebsiteId())
-                ->where("p.customer_group_id = ?", Mage_Customer_Model_Group::NOT_LOGGED_IN_ID)
-                ->where("p.entity_id IN (?)", $product_ids)
-        );
-
-        $data = array();
-        while ($row = $stmt->fetch()) {
-            $data[$row['product_id']] = $row;
         }
 
         return $data;
