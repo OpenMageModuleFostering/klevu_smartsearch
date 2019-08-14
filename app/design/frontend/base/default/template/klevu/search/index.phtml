@@ -64,7 +64,8 @@
 <input id="totalPages" type="hidden" name="totalPages" value="0" />
 <?php $config = Mage::helper('klevu_search/config'); ?>
 <?php 
-$protocol = stripos($_SERVER['SERVER_PROTOCOL'],'https') === true ? 'https://' : 'http://';
+$isSecure = Mage::app()->getFrontController()->getRequest()->isSecure(); 
+$protocol = ($isSecure) ? 'https://' : 'http://'; 
 $src = $protocol.$config->getJsUrl();
 ?>
 <script type="text/javascript" src="<?php echo $src; ?>/klevu-js-v1/js-1-1/klevu-landing.js">// <![CDATA[
