@@ -32,7 +32,7 @@
                 </tr>
 
                 <tr>
-                    <td class="label"><label for="tax_enable"><?php echo $this->__("Want to include tax in price? :") ?></label></td>
+                    <td class="label"><label for="tax_enable"><?php echo $this->__("Would you like to show price including taxes for search results?") ?></label></td>
                     <td class="value">
                         <select name="tax_enable" id="tax_enable">
                             <option value="0" selected="selected"><?php echo $this->__("No") ?></option>
@@ -41,11 +41,11 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="label"><label for="secure_baseurl_enable"><?php echo $this->__("Want to use secure base url? :<br/>(from System > Cofiguration > Store view > Secure > Base URL)") ?></label></td>
+                    <td class="label"><label for="secure_baseurl_enable"><?php echo $this->__("Which 'base URL' would you like to use for products in search results?<br/>(from System > Configuration > Web > Secure OR Unsecure > Base URL)") ?></label></td>
                     <td class="value">
                         <select name="secure_baseurl_enable" id="secure_base_enable">
-                            <option value="0" selected="selected"><?php echo $this->__("No") ?></option>
-                            <option value="1"><?php echo $this->__("Yes") ?></option>
+                            <option value="0" selected="selected"><?php echo $this->__("Unsecure") ?></option>
+                            <option value="1"><?php echo $this->__("Secure") ?></option>
                         </select>
                     </td>
                 </tr>

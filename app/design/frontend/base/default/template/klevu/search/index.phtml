@@ -56,18 +56,17 @@
 </div>
 <!-- End of kuProListing --></div>
 <!-- End of klevu-container -->
-<input id="noOfRecords" type="hidden" name="noOfRecords" value="<?php if(!empty($per_page[0])){ echo $per_page[0]; }?>" /> 
+<?php $grid_per_page = Mage::getStoreConfig("catalog/frontend/grid_per_page"); ?>
+<input id="noOfRecords" type="hidden" name="noOfRecords" value="<?php if(!empty($grid_per_page)){ echo $grid_per_page; } else { echo "12";}?>" /> 
 <input id="startPos" type="hidden" name="startPos" value="0" /> 
 <input id="totalResultsFound" type="hidden" name="totalResultsFound" value="0" /> 
 <input id="searchedKeyword" type="hidden" name="searchedKeyword" value="" /> 
 <input id="totalPages" type="hidden" name="totalPages" value="0" />
 <?php $config = Mage::helper('klevu_search/config'); ?>
 <?php 
-if($config->isSecureUrlEnabled(Mage::app()->getStore()->getStoreId())) {
-    $src = "https://".$config->getJsUrl();
-} else {
-    $src = "http://".$config->getJsUrl();
-} ?>
+$protocol = stripos($_SERVER['SERVER_PROTOCOL'],'https') === true ? 'https://' : 'http://';
+$src = $protocol.$config->getJsUrl();
+?>
 <script type="text/javascript" src="<?php echo $src; ?>/klevu-js-v1/js-1-1/klevu-landing.js">// <![CDATA[
 // ]]></script>
 <script type="text/javascript">// <![CDATA[

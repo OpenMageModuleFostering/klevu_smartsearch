@@ -1,6 +1,8 @@
 <?php /** @var Klevu_Search_Block_Catalog_Product_Tracking $this */ ?>
 <?php $config = Mage::helper('klevu_search/config'); ?>
-<?php if ($config->isExtensionConfigured()): ?>
+<?php if ($config->isExtensionConfigured()): 
+            //echo Mage::getSingleton('core/session')->getCategoryValue();
+?>
 <script type="text/javascript">
     (function() {
         var referrer, search_term, klevu_search_product_tracking;

@@ -7,6 +7,8 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
      * @var array
      */
     protected $_klevu_parameters;
+    protected $_klevu_tracking_parameters;
+    protected $_klevu_type_of_records = null;
 
     /**
      * Klevu Search API Product IDs
@@ -95,11 +97,30 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
                 'klevuSort' => $this->_getSortOrder(),
                 'enableFilters' => 'true',
                 'filterResults' => $this->_getPreparedFilters(),
+                'category' => $this->_klevu_type_of_records
             );
             $this->log(Zend_Log::DEBUG, sprintf("Starting search for term: %s", $this->_getQuery()->getQueryText()));
         }
 
         return $this->_klevu_parameters;
+    }
+    
+    /**
+     * Return the Klevu api search filters
+     * @return array
+     */
+    public function getSearchTracking($noOfTrackingResults,$queryType) {
+
+        $this->_klevu_tracking_parameters = array(
+            'klevu_apiKey' => Mage::helper('klevu_search/config')->getJsApiKey(),
+            'klevu_term' => $this->_query,
+            'klevu_totalResults' => $noOfTrackingResults,
+            'klevu_shopperIP' => Mage::helper('klevu_search')->getIp(),
+            'klevu_typeOfQuery' => $queryType,
+            'Klevu_typeOfRecord' => 'KLEVU_PRODUCT'
+        );
+        $this->log(Zend_Log::DEBUG, sprintf("Search tracking for term: %s", $this->_query));
+        return $this->_klevu_tracking_parameters;
     }
 
     /**
@@ -263,7 +284,7 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
             if (!$this->getKlevuResponse()->hasData('result')) {
                 return array();
             }
-
+            
             foreach ($this->getKlevuResponse()->getData('result') as $result) {
                 $item_id =  Mage::helper('klevu_search')->getMagentoProductId((string) $result['id']);
                 $this->_klevu_parent_child_ids[] = $item_id;
@@ -275,6 +296,8 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
             }
             $this->_klevu_product_ids = array_unique($this->_klevu_product_ids);
             $this->log(Zend_Log::DEBUG, sprintf("Products count returned: %s", count($this->_klevu_product_ids)));
+            $response_meta = $this->getKlevuResponse()->getData('meta');
+            Mage::getModel('klevu_search/api_action_searchtermtracking')->execute($this->getSearchTracking(count($this->_klevu_product_ids),$response_meta['typeOfQuery']));
         }
 
        return $this->_klevu_product_ids;
@@ -322,7 +345,6 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
         if (!$this->isExtensionConfigured()) {
             return parent::getSize();
         }
-
         $response = $this->getKlevuResponse()->getData('meta');
         return (int) $response['totalResultsFound'];
     }

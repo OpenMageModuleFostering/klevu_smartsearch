@@ -6,8 +6,14 @@ class Klevu_Search_IndexController extends Mage_Core_Controller_Front_Action {
     
     public function IndexAction() {
       
-	    $this->loadLayout();   
-	    $this->getLayout()->getBlock("head")->setTitle($this->__("Search"));
+	    $this->loadLayout();  
+        $query = $this->getRequest()->getParam('q');
+        if(!empty($query)) {   
+            $head = $this->getLayout()->getBlock('head');        
+            $head->setTitle($this->__(sprintf("Search results for: '%s'",$query)));
+        } else {
+            $this->getLayout()->getBlock("head")->setTitle($this->__("Search"));
+        }
 	    if($breadcrumbs = $this->getLayout()->getBlock("breadcrumbs")) {
             $breadcrumbs->addCrumb("home", array(
                 "label" => $this->__("Home"),

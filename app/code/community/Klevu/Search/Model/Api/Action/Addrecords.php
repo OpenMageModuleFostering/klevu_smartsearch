@@ -149,9 +149,12 @@ class Klevu_Search_Model_Api_Action_Addrecords extends Klevu_Search_Model_Api_Ac
             if (isset($record['otherAttributeToIndex']) && is_array($record['otherAttributeToIndex'])) {
                 $this->prepareOtherAttributeToIndexParameters($record);
             }
+            
+            if (isset($record['groupPrices']) && is_array($record['groupPrices'])) {
+                $this->prepareGroupPricesParameters($record);
+            }
 
             $pairs = array();
-
 
             foreach ($record as $key => $value) {
                 $pairs[] = array(
@@ -217,6 +220,32 @@ class Klevu_Search_Model_Api_Action_Addrecords extends Klevu_Search_Model_Api_Ac
             $value = sprintf("%s:%s:%s", $key, $label, $value);
         }
         $record['otherAttributeToIndex'] = implode(";", $record['otherAttributeToIndex']);
+    }
+    
+    
+    /**
+     * Flattens GroupPrices parameters array to a string formatted: key:value[,value]
+     * @param string
+     */
+    protected function prepareGroupPricesParameters(&$record) {
+        foreach ($record['groupPrices'] as $key => &$value) {
+            $key = $this->sanitiseOtherAttribute($key);
+            
+            if(is_array($value)){
+                $label = $this->sanitiseOtherAttribute($value['label']);
+                $value = $this->sanitiseOtherAttribute($value['values']);
+            }else {
+                $label = $this->sanitiseOtherAttribute($key);
+                $value = $this->sanitiseOtherAttribute($value);
+            }
+            
+            if (is_array($value)) {
+                $value = implode(",", $value);
+            }
+
+            $value = sprintf("%s:%s:%s", $key, $label, $value);
+        }
+        $record['groupPrices'] = implode(";", $record['groupPrices']);
     }
 
     /**

@@ -194,4 +194,16 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
         }
         return sprintf("%s%s", $parent_sku, $product_sku);
     }
+    
+    public function getIp() {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+        
+        return $ip;
+    }
 }

@@ -39,7 +39,7 @@ class Klevu_Search_Block_Adminhtml_Form_Field_Sync_Button extends Mage_Adminhtml
 
         $this->addData(array(
             "html_id"         => $element->getHtmlId(),
-            "button_label"    => sprintf("Sync All Products%s", $label_suffix),
+            "button_label"    => sprintf("Sync Data %s", $label_suffix),
             "destination_url" => $this->getUrl("adminhtml/klevu_search/sync_all", $url_params)
         ));
 

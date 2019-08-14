@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Klevu_Search>
-            <version>1.1.21</version>
+            <version>1.1.22</version>
         </Klevu_Search>
     </modules>
     <global>
@@ -35,7 +35,6 @@
                     </order_sync>
                 </entities>
             </klevu_search_resource>
-            
         </models>
         <resources>
             <klevu_search_setup>
@@ -172,6 +171,15 @@
                     </klevu_search_categroy_product_sync>
                 </observers>
             </catalog_category_change_products>
+            <review_save_after>
+                <observers>
+                    <ratingsUpdate>
+                        <type>singleton</type> 
+                        <class>klevu_search/observer</class>
+                        <method>ratingsUpdate</method>
+                    </ratingsUpdate>
+                </observers>
+            </review_save_after>
         </events>
     </global>
     <admin>
@@ -235,7 +243,6 @@
                     <model>klevu_search/order_sync::run</model>
                 </run>
             </klevu_search_order_sync>
-            
         </jobs>
     </crontab>
     <default>
@@ -257,6 +264,7 @@
                 <enabled>1</enabled>
                 <frequency>0 * * * *</frequency>
                 <last_run>Never</last_run>
+                <sync_options>1</sync_options>
             </product_sync>
             <searchlanding>
                 <landenabled>2</landenabled>

@@ -18,7 +18,8 @@ class Klevu_Search_Block_Catalog_Product_Tracking extends Mage_Core_Block_Templa
                 'klevu_type'   => 'clicked',
                 'klevu_productId' => $product->getId(),
                 'klevu_productName' => $product->getName(),
-                'klevu_productUrl' => $product->getProductUrl()
+                'klevu_productUrl' => $product->getProductUrl(),
+                'Klevu_typeOfRecord' => 'KLEVU_PRODUCT'
             );
 
         return json_encode($product);

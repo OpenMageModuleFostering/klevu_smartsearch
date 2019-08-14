@@ -287,7 +287,7 @@ class Klevu_Search_Test_Model_Product_Sync extends Klevu_Search_Test_Model_Api_T
     {
         $model = Mage::getModel("klevu_search/product_sync");
         $expirySaleProductsIds = $model->getExpirySaleProductsIds();
-        $model->markProductForupdate();
+        $model->markProductForUpdate();
         $this->assertEquals($this->getExpectedSpecialpriceProducts(), $expirySaleProductsIds);
     }
     
@@ -301,7 +301,7 @@ class Klevu_Search_Test_Model_Product_Sync extends Klevu_Search_Test_Model_Api_T
 
         $model = Mage::getModel("klevu_search/product_sync");
         $catalogruleProductsIds = $model->getCatalogRuleProductsIds();
-        $model->markProductForupdate();
+        $model->markProductForUpdate();
         $this->assertEquals($this->getExpectedSpecialpriceProducts(), $catalogruleProductsIds);
         
     }

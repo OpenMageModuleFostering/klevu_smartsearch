@@ -39,7 +39,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         try {
            
             /* mark for update special price product */
-            $this->markProductForupdate();
+            $this->markProductForUpdate();
+            
+            /* update boosting rule event */
+            Mage::dispatchEvent('update_rule_of_products', array());
             
             if ($this->isRunning(2)) {
                 // Stop if another copy is already running
@@ -60,6 +63,13 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 
                 if (!$this->setupSession($store)) {
                     continue;
+                }
+                
+                $session = Mage::getSingleton('klevu_search/session');
+                $firstSync = $session->getFirstSync();
+                if(!empty($firstSync)) {
+                    $this->updateProductsRating($store);
+                    $session->unsFirstSync();
                 }
 
                 $this->log(Zend_Log::INFO, sprintf("Starting sync for %s (%s).", $store->getWebsite()->getName(), $store->getName()));
@@ -97,7 +107,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             "sd.attribute_id = :status_attribute_id AND sd.entity_id = k.product_id AND sd.store_id = :default_store_id",
                             ""
                         )
-                        ->where("(k.store_id = :store_id) AND (k.test_mode = :test_mode) AND ((p.entity_id IS NULL) OR (CASE WHEN ss.value_id > 0 THEN ss.value ELSE sd.value END != :status_enabled) OR (CASE WHEN k.parent_id = 0 THEN k.product_id ELSE k.parent_id END NOT IN (?)))",
+                        ->where("(k.store_id = :store_id) AND (k.type = :type) AND (k.test_mode = :test_mode) AND ((p.entity_id IS NULL) OR (CASE WHEN ss.value_id > 0 THEN ss.value ELSE sd.value END != :status_enabled) OR (CASE WHEN k.parent_id = 0 THEN k.product_id ELSE k.parent_id END NOT IN (?)))",
                             $this->getConnection()
                                 ->select()
                                 ->from(
@@ -108,6 +118,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         )
                         ->group(array('k.product_id', 'k.parent_id'))
                         ->bind(array(
+                            'type'          => "products",
                             'store_id'       => $store->getId(),
                             'default_store_id' => Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID,
                             'test_mode'      => $this->isTestModeEnabled(),
@@ -142,7 +153,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                     "i.product_id = k.product_id AND k.store_id = i.store_id AND i.visibility IN (:visible_both, :visible_search)",
                                     ""
                                 )
-                                ->where("(k.store_id = :store_id) AND (k.test_mode = :test_mode) AND (p.type_id != :configurable) AND (p.updated_at > k.last_synced_at)"),
+                                ->where("(k.store_id = :store_id) AND (k.type = :type) AND (k.test_mode = :test_mode) AND (p.type_id != :configurable) AND (p.updated_at > k.last_synced_at)"),
                             // Select products with parents (configurable) that need to be updated
                             $this->getConnection()
                                 ->select()
@@ -186,10 +197,11 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                     "sd.attribute_id = :status_attribute_id AND sd.entity_id = k.product_id AND sd.store_id = :default_store_id",
                                     ""
                                 )
-                                ->where("(k.store_id = :store_id) AND (k.test_mode = :test_mode) AND (CASE WHEN ss.value_id > 0 THEN ss.value ELSE sd.value END = :status_enabled) AND ((p1.updated_at > k.last_synced_at) OR (p2.updated_at > k.last_synced_at))")
+                                ->where("(k.store_id = :store_id) AND (k.type = :type) AND (k.test_mode = :test_mode) AND (CASE WHEN ss.value_id > 0 THEN ss.value ELSE sd.value END = :status_enabled) AND ((p1.updated_at > k.last_synced_at) OR (p2.updated_at > k.last_synced_at))")
                         ))
                         ->group(array('k.product_id', 'k.parent_id'))
                         ->bind(array(
+                            'type'          => "products",
                             'store_id' => $store->getId(),
                             'default_store_id' => Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID,
                             'test_mode' => $this->isTestModeEnabled(),
@@ -222,7 +234,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 )
                                 ->joinLeft(
                                     array('k' => $this->getTableName("klevu_search/product_sync")),
-                                    "p.entity_id = k.product_id AND k.parent_id = 0 AND i.store_id = k.store_id AND k.test_mode = :test_mode",
+                                    "p.entity_id = k.product_id AND k.parent_id = 0 AND i.store_id = k.store_id AND k.test_mode = :test_mode AND k.type = :type",
                                     ""
                                 )
                                 ->where("(p.type_id != :configurable) AND (k.product_id IS NULL)"),
@@ -256,13 +268,14 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 )
                                 ->joinLeft(
                                     array('k' => $this->getTableName("klevu_search/product_sync")),
-                                    "s.parent_id = k.parent_id AND s.product_id = k.product_id AND k.store_id = :store_id AND k.test_mode = :test_mode",
+                                    "s.parent_id = k.parent_id AND s.product_id = k.product_id AND k.store_id = :store_id AND k.test_mode = :test_mode AND k.type = :type",
                                     ""
                                 )
                                 ->where("(CASE WHEN ss.value_id > 0 THEN ss.value ELSE sd.value END = :status_enabled) AND (k.product_id IS NULL)")
                         ))
                         ->group(array('k.product_id', 'k.parent_id'))
                         ->bind(array(
+                            'type' => "products",
                             'store_id' => $store->getId(),
                             'default_store_id' => Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID,
                             'test_mode' => $this->isTestModeEnabled(),
@@ -325,6 +338,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                         $store->getWebsite()->getName(),
                         $store->getName()
                     ));
+                    
                 }
                 $config->setLastProductSyncRun("now", $store);
 
@@ -552,6 +566,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 ->select()
                 ->from(array('k' => $this->getTableName("klevu_search/product_sync")))
                 ->where("k.store_id = ?", $this->getStore()->getId())
+                ->where("k.type = ?","products")
                 ->where("k.test_mode = ?", $this->isTestModeEnabled());
 
             $skipped_record_ids = array();
@@ -566,7 +581,8 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 }
                 $or_where[] = sprintf("(%s AND %s)",
                     $connection->quoteInto("k.product_id = ?", $data[$i]['product_id']),
-                    $connection->quoteInto("k.parent_id = ?", $data[$i]['parent_id'])
+                    $connection->quoteInto("k.parent_id = ?", $data[$i]['parent_id']),
+                    $connection->quoteInto("k.type = ?", "products")
                 );
             }
             $select->where(implode(" OR ", $or_where));
@@ -604,9 +620,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */
     protected function updateProducts(array $data) {
         $total = count($data);
-
+       
         $this->addProductSyncData($data);
-
+        //print_r($data);
+        //exit;
         $response = Mage::getModel('klevu_search/api_action_updaterecords')
             ->setStore($this->getStore())
             ->execute(array(
@@ -631,9 +648,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 
                 $ids = $helper->getMagentoProductId($data[$i]['id']);
 
-                $where[] = sprintf("(%s AND %s)",
+                $where[] = sprintf("(%s AND %s AND %s)",
                     $connection->quoteInto("product_id = ?", $ids['product_id']),
-                    $connection->quoteInto("parent_id = ?", $ids['parent_id'])
+                    $connection->quoteInto("parent_id = ?", $ids['parent_id']),
+                    $connection->quoteInto("type = ?", "products")
                 );
             }
 
@@ -682,7 +700,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         $total = count($data);
 
         $this->addProductSyncData($data);
-
         $response = Mage::getModel('klevu_search/api_action_addrecords')
             ->setStore($this->getStore())
             ->execute(array(
@@ -712,13 +729,14 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                     $ids["parent_id"],
                     $this->getStore()->getId(),
                     $this->isTestModeEnabled(),
-                    $sync_time
+                    $sync_time,
+                    "products"
                 );
             }
 
             $this->getConnection()->insertArray(
                 $this->getTableName('klevu_search/product_sync'),
-                array("product_id", "parent_id", "store_id", "test_mode", "last_synced_at"),
+                array("product_id", "parent_id", "store_id", "test_mode", "last_synced_at","type"),
                 $data
             );
 
@@ -804,7 +822,14 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 unset($products[$index]);
                 continue;
             }
-
+            
+            /* Use event to add any external module data to product */
+            Mage::dispatchEvent('add_external_data_to_sync', array(
+                'parent' => $parent,
+                'product'=> &$product,
+                'store' => $this->getStore()
+            ));
+            
             // Add data from mapped attributes
             foreach ($attribute_map as $key => $attributes) {
                 $product[$key] = null;
@@ -820,7 +845,18 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 break;
                             }
                         }
-                        break;  
+                        break;
+                    case "rating":
+                        foreach ($attributes as $attribute) {
+                            if ($parent && $parent->getData($attribute)) {
+                                $product[$key] = $this->convertToRatingStar($parent->getData($attribute));
+                                break;
+                            } else {
+                                $product[$key] = $this->convertToRatingStar($item->getData($attribute));
+                                break;
+                            }
+                        }
+                        break;                        
                     case "otherAttributeToIndex":
                     case "other":
                         $product[$key] = array();
@@ -898,7 +934,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             $price = (isset($price_data[$product['parent_id']])) ? $price_data[$product['parent_id']]['min_price'] : $parent->getData("price");
                             $markup = 0;
 
-                            if (isset($configurable_price_data[$product['parent_id']])) {
+                            /*if (isset($configurable_price_data[$product['parent_id']])) {
                                 foreach ($configurable_price_data[$product['parent_id']] as $attribute => $pricing_data) {
                                     $value = $item->getData($attribute);
                                     if ($value && isset($pricing_data[$value])) {
@@ -909,7 +945,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                         }
                                     }
                                 }
-                            }
+                            }*/
                             // show low price for config products
                             $product['startPrice'] = $this->processPrice($price , $tax_class_id, $parent);
                             
@@ -933,7 +969,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 if ($item->getData("price") !== null) {
                                     $product["salePrice"] = $this->processPrice($item->getData("price"), $tax_class_id, $item);
                                 } else if ($parent) {
-                                    $product["salePrice"] = $this->processPrice($parent->getData("price"), $tax_class_id, $item);
+                                    $product["salePrice"] = $this->processPrice($parent->getData("price"), $tax_class_id, $parent);
                                 }
                             }
                         }
@@ -964,7 +1000,18 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 $product['category'] = "";
                 $product['listCategory'] = "";
             }
-
+            
+            
+            if ($parent) {
+                //Get the price based on customer group
+                $product['groupPrices'] = $this->getGroupPrices($parent);
+            } else if($item) {
+                $product['groupPrices'] = $this->getGroupPrices($item);
+            } else {
+                $product['groupPrices'] = "";
+            }
+            
+            
 
             // Use the parent URL if the product is invisible (and has a parent) and
             // use a URL rewrite if one exists, falling back to catalog/product/view
@@ -1230,11 +1277,14 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             if(!empty($otherAttributeToIndex)) {
                 $attribute_map['otherAttributeToIndex'] = $otherAttributeToIndex;
             }
+            
             // Add boostingAttribute to $attribute_map.
-            if(($boosting_attribute = Mage::helper('klevu_search/config')->getBoostingAttribute($this->getStore())) && !is_null($boosting_attribute)) {
-                $attribute_map['boostingAttribute'][] = $boosting_attribute;
+            $boosting_value = Mage::helper('klevu_search/config')->getBoostingAttribute($this->getStore());
+            if($boosting_value != "use_boosting_rule") {
+                if(($boosting_attribute = Mage::helper('klevu_search/config')->getBoostingAttribute($this->getStore())) && !is_null($boosting_attribute)) {
+                    $attribute_map['boostingAttribute'][] = $boosting_attribute;
+                }
             }
-
             $this->setData('attribute_map', $attribute_map);
         }
 
@@ -1405,7 +1455,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
     protected function getCategoryNames(array $categories) {
         $category_paths = $this->getCategoryPaths();
 
-        $result = array();
+        $result = array("KLEVU_PRODUCT");
         foreach ($categories as $category) {
             if (isset($category_paths[$category])) {
                 $result = array_merge($result, $category_paths[$category]);
@@ -1438,6 +1488,37 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         }
 
         return $name;
+    }
+    
+    /**
+     * Get the list of prices based on customer group
+     *
+     * @param object $item OR $parent
+     *
+     * @return array
+     */
+    protected function getGroupPrices($proData) {
+        $groupPrices = $proData->getData('group_price');
+            if (is_null($groupPrices)) {
+                $attribute = $proData->getResource()->getAttribute('group_price');
+                if ($attribute){
+                    $attribute->getBackend()->afterLoad($proData);
+                    $groupPrices = $proData->getData('group_price');
+                }
+            }
+
+            if (!empty($groupPrices) && is_array($groupPrices)) {
+                foreach ($groupPrices as $groupPrice) {
+                    if($this->getStore()->getWebsiteId()== $groupPrice['website_id'] || $groupPrice['website_id']==0) {  
+                        $groupPriceKey = $groupPrice['cust_group'];
+                        $groupname = Mage::getModel('customer/group')->load($groupPrice['cust_group'])->getCustomerGroupCode();
+                        $result['label'] =  $groupname;
+                        $result['values'] =  $groupPrice['website_price'];
+                        $priceGroupData[$groupPriceKey]= $result;
+                    }
+                }
+                return $priceGroupData;
+            }
     }
 
     /**
@@ -1915,7 +1996,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      * if special to price date expire then make that product for update
      * @return $this
      */ 
-    public function markProductForupdate(){
+    public function markProductForUpdate(){
         try {
             $special_pro_ids = $this->getExpirySaleProductsIds();
             if(!empty($special_pro_ids)) {
@@ -1928,7 +2009,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
     }
     
     /**
-     * Mark prodcut ids for update
+     * Mark product ids for update
+     *
+     * @param array ids
+     *
      * @return 
      */ 
     public function updateSpecificProductIds($ids)
@@ -1942,4 +2026,64 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 $where
                 );
    }
+   
+    /**
+     * Update all product ids rating attribute
+     *
+     * @param string store
+     *
+     * @return  $this
+     */ 
+    public function updateProductsRating($store)
+    {
+        $sumColumn = new Zend_Db_Expr("AVG(rating_vote.{$this->getConnection()->quoteIdentifier('percent')})");
+        $select = $this->getConnection()->select()
+            ->from(array('rating_vote' => $this->getTableName('rating/rating_option_vote')),
+                array(
+                    'entity_pk_value' => 'rating_vote.entity_pk_value',
+                    'sum'             => $sumColumn,
+                    ))
+            ->join(array('review' => $this->getTableName('review/review')),
+                'rating_vote.review_id=review.review_id',
+                array())
+            ->joinLeft(array('review_store' => $this->getTableName('review/review_store')),
+                'rating_vote.review_id=review_store.review_id',
+                array('review_store.store_id'))
+            ->join(array('rating_store' => $this->getTableName('rating/rating_store')),
+                'rating_store.rating_id = rating_vote.rating_id AND rating_store.store_id = review_store.store_id',
+                array())
+            ->join(array('review_status' => $this->getTableName('review/review_status')),
+                'review.status_id = review_status.status_id',
+                array())
+            ->where('review_status.status_code = :status_code AND rating_store.store_id = :storeId')
+            ->group('rating_vote.entity_pk_value')
+            ->group('review_store.store_id');
+        $bind = array('status_code' => "Approved",'storeId' => $store->getId());
+        $data_ratings = $this->getConnection()->fetchAll($select,$bind);
+        $allStores = Mage::app()->getStores();
+        foreach($data_ratings as $key => $value)
+        {
+            Mage::getModel('catalog/product_action')->updateAttributes(array($value['entity_pk_value']), array('rating'=>$value['sum']), $store->getId());
+            if(count($allStores) > 1) {
+                Mage::getModel('catalog/product_action')->updateAttributes(array($value['entity_pk_value']), array('rating'=>0),0);
+            }    
+        }
+   }
+   
+    /**
+     * Convert percent to rating star
+     *
+     * @param int percentage
+     *
+     * @return float
+     */
+    public function convertToRatingStar($percentage) {
+        if(!empty($percentage) && $percentage!=0) {
+            $start = $percentage * 5;
+            return round($start/100, 2);
+        } else {
+            return;
+        }
+    }
+
 }

@@ -6,7 +6,7 @@ class Klevu_Search_Block_Adminhtml_Form_Field_Store_Level_Label extends Mage_Adm
         if ($element->getScope() == "stores") {
             return $element->getEscapedValue();
         } else {
-            return Mage::helper("klevu_search")->__("Switch to store scope to see");
+            return Mage::helper("klevu_search")->__("Switch to store scope to set");
         }
     }
 

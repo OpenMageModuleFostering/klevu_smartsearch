@@ -1,7 +1,8 @@
 <?php
 
 class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtml_Controller_Action {
-
+    
+    
     public function configure_userAction() {
         $this->loadLayout();
         $this->initLayoutMessages('klevu_search/session');
@@ -9,6 +10,7 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
     }
 
     public function configure_user_postAction() {
+
         $request = $this->getRequest();
 
         if (!$request->isPost() || !$request->isAjax()) {
@@ -31,9 +33,18 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
             $klevu_new_url = $request->getPost("klevu_new_url");
             $merchantEmail = $request->getPost("merchantEmail");
             $contactNo = $request->getPost("countyCode")."-".$request->getPost("contactNo");
-            if(!empty($klevu_new_email) && !empty($klevu_new_password) && !empty($userPlan) && !empty($klevu_new_url)
-            && !empty($merchantEmail) ) {
-            
+            $error = true;
+            if(empty($klevu_new_email) && empty($klevu_new_password) && empty($userPlan) && empty($klevu_new_url)
+            && empty($merchantEmail) ) {
+                $session->addError(Mage::helper("klevu_search")->__("Missing details in the form. Please check."));
+                return $this->_forward("configure_user");
+            } else if(!preg_match("/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i",$klevu_new_email)) {
+                $session->addError(Mage::helper("klevu_search")->__("Please enter valid Primary Email."));
+                return $this->_forward("configure_user");
+            } else if(!preg_match("/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i",$merchantEmail)) {
+                $session->addError(Mage::helper("klevu_search")->__("Please enter valid Retailer Email."));
+                return $this->_forward("configure_user");
+            }else {
                 /* if partner account selected as UserPlan then change plan to trial*/
                 if($userPlan=="partnerAccount"){
                    $userPlan = "trial";
@@ -47,10 +58,7 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
                     $request->getPost("klevu_new_url"),
                     $request->getPost("merchantEmail"),
                     $contactNo
-                ); 
-            } else {
-                $session->addError(Mage::helper("klevu_search")->__("Missing details in the form. Please check."));
-                return $this->_forward("configure_user"); 
+                );
             }
         }
         
@@ -128,6 +136,7 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
                 $config->setRestHostname($result['webstore']->getRestHostname(), $store, $test_mode);
                 if (isset($result["message"])) {
                     $session->addSuccess(Mage::helper("klevu_search")->__($result["message"]));
+                    $session->setFirstSync($store_code);
                 }
             } else {
                 $session->addError(Mage::helper("klevu_search")->__($result["message"]));

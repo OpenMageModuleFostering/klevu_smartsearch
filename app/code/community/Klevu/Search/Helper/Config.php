@@ -34,6 +34,8 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_JS_URL = "klevu_search/general/js_url";
     const XML_PATH_TEST_JS_URL = "klevu_search/general/test_js_url";
     const KLEVU_PRODUCT_FORCE_OLDERVERSION = 2;
+    const XML_PATH_SYNC_OPTIONS = "klevu_search/product_sync/sync_options";
+    const XML_PATH_UPGRADE_PREMIUM = "klevu_search/general/premium";
 
     const DATETIME_FORMAT = "Y-m-d H:i:s T";
 
@@ -589,7 +591,8 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
                 "short_description",
                 "price",
                 "tax_class_id",
-                "weight"),
+                "weight",
+                "rating"),
             "klevu_attribute" => array(
                 "name",
                 "sku",
@@ -598,7 +601,8 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
                 "shortDesc",
                 "salePrice",
                 "salePrice",
-                "weight"
+                "weight",
+                "rating"
             )
         );
     }
@@ -665,6 +669,40 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
             $config->reinit();
         }
 
+        return $this;
+    }
+    
+    /**
+     * Return the configuration flag for sync options.
+     *
+     *
+     * @return int
+     */
+    public function getSyncOptionsFlag() {
+        return Mage::getStoreConfig(static::XML_PATH_SYNC_OPTIONS);
+    }
+    
+    /**
+     * save sync option value
+     *
+     * @param string $value
+     *
+     * @return
+     */
+    public function saveSyncOptions($value) {
+        $this->setGlobalConfig(static::XML_PATH_SYNC_OPTIONS, $value);
+        return $this;
+    }
+    
+    /**
+     * save upgrade button value
+     *
+     * @param string $value
+     *
+     * @return
+     */
+    public function saveUpgradePremium($value) {
+        $this->setGlobalConfig(static::XML_PATH_UPGRADE_PREMIUM, $value);
         return $this;
     }
 }

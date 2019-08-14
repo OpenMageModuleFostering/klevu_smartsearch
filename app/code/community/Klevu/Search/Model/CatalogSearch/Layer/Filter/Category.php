@@ -20,7 +20,7 @@ class Klevu_Search_Model_CatalogSearch_Layer_Filter_Category extends Mage_Catalo
         if ($data === null) {
             // Fetch filters from Klevu
             $filters = $this->_getKlevuCategoryFilters();
-
+            
             if ($this->getLayer()->getProductCollection()->count() == 0) {
                 return array(); // No visible results found in search
             }

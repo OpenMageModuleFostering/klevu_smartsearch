@@ -177,3 +177,4 @@ function checkplan()
 {
  showPopup("http://www.klevu.com/magento-free-vs-pro.html");
 }
+var klevu_search_wizard_configure_user_form = new varienForm('klevu_search_wizard_configure_user_form');

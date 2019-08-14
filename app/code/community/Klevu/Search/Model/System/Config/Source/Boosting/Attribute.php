@@ -9,11 +9,16 @@ class Klevu_Search_Model_System_Config_Source_Boosting_Attribute {
      */
     public function toOptionArray() {
         $attributes = $this->getAttributeCollection();
+        $boost_option = array(
+            'value' => null,
+            'label' => ''
+        );
         $options = array(
             array(
                 'value' => null,
                 'label' => '--- No Attribute Selected ---'
-            )
+            ),
+            $boost_option
         );
         foreach($attributes as $attribute) {
             /** @var Mage_Catalog_Model_Resource_Eav_Attribute $attribute */
@@ -27,7 +32,7 @@ class Klevu_Search_Model_System_Config_Source_Boosting_Attribute {
     }
 
     /**
-     * Get only integer and decimal attributes that are not used by Klevu yet.
+     * Get only integer,varchar and decimal attributes that are not used by Klevu yet.
      *
      * @return Mage_Catalog_Model_Resource_Product_Attribute_Collection
      */
@@ -35,7 +40,7 @@ class Klevu_Search_Model_System_Config_Source_Boosting_Attribute {
         /** @var Mage_Catalog_Model_Resource_Product_Attribute_Collection $collection */
         $collection = Mage::getResourceModel('catalog/product_attribute_collection');
 
-        // We only want integers and decimal attributes.
+        // We want integers,varchar and decimal attributes.
         $collection->addFieldToFilter(
             'backend_type',
             array(

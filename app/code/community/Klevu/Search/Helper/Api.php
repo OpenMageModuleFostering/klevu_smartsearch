@@ -17,6 +17,9 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
      *                 message:     a message to be shown to the user.
      */
     public function createUser($email, $password, $userPlan, $partnerAccount, $url, $merchantEmail,$contactNo) {
+        $user = Mage::getSingleton('admin/session');
+        $userEmail = $user->getUser()->getEmail();
+        $storePhone = Mage::getStoreConfig('general/store_information/phone');
         $response = Mage::getModel("klevu_search/api_action_adduser")->execute(array(
             "email"    => $email,
             "password" => $password,
@@ -24,8 +27,8 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
             "partnerAccount" => $partnerAccount,             
             "url"      => $url,
             "merchantEmail" => $merchantEmail,
-            "contactNo" => $contactNo
-            
+            "contactNo" => $contactNo,
+            "shopInfo" => $userEmail.";".$storePhone,
         ));
 
         if ($response->isSuccessful()) {

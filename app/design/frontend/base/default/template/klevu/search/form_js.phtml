@@ -2,11 +2,10 @@
 <?php $config = Mage::helper('klevu_search/config'); ?>
 <?php $helper = Mage::helper('klevu_search'); ?>
 <?php if ($config->isExtensionConfigured()): 
-if($config->isSecureUrlEnabled(Mage::app()->getStore()->getStoreId())) {
-    $url = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK,true);
-} else { 
-    $url = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK);
-} ?>
+        $url = Mage::getUrl('search', array(
+                '_secure' => Mage::app()->getFrontController()->getRequest()->isSecure()
+        ));
+?>
 <script type="text/javascript">
     var allInputs = document.getElementsByTagName( 'input' );
     var klevu_current_version = '<?php  echo Mage::getConfig()->getModuleConfig('Klevu_Search')->version; ?>';
@@ -43,7 +42,7 @@ if($config->isSecureUrlEnabled(Mage::app()->getStore()->getStoreId())) {
                     var search_input = allInputs[i];
                     search_input.stopObserving('click');
                     search_input.stopObserving('keydown');
-                    search_input.form.action='<?php echo $url; ?>' + "search";//?q="+search_input.value;
+                    search_input.form.action='<?php echo $url; ?>' ;//?q="+search_input.value;
                     search_input.form.observe('submit', function (e) {
                         //if(search_input.value.length!= 0){
                             //Event.stop(e);
@@ -55,7 +54,7 @@ if($config->isSecureUrlEnabled(Mage::app()->getStore()->getStoreId())) {
         }
         
     })();
-     var klevu_storeLandingPageUrl = '<?php echo $url; ?>' + "search";
+     var klevu_storeLandingPageUrl = '<?php echo $url; ?>';
      var klevu_showQuickSearchOnEnter=false;
     <?php } else if($config->isLandingEnabled()==1) { ?>
     (function () {
@@ -82,6 +81,17 @@ if($config->isSecureUrlEnabled(Mage::app()->getStore()->getStoreId())) {
         klevu_result_left_margin = '';
     (function () { var ws = document.createElement('script'),kl_protocol =("https:"===document.location.protocol?"https://":"http://"); ws.type = 'text/javascript'; ws.async = true; ws.src = kl_protocol+'<?php echo $config->getJsUrl() ?>/klevu-js-v1/js/klevu-webstore.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s); })();
 </script>
-
 <?php endif; ?>
+
+<?php // show group price based on logged in customer group ?>
+<script type="text/javascript">
+<?php 
+    $login = Mage::getSingleton( 'customer/session' )->isLoggedIn(); //Check if User is Logged In
+    if($login) { ?>
+    var klevu_loginCustomerGroup = "<?php echo Mage::getSingleton('customer/session')->getCustomerGroupId(); ?>";
+<?php }?>
+</script>
+
+
+
 
