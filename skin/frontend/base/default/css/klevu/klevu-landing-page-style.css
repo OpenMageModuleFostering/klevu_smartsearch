@@ -945,6 +945,22 @@ transition: background 200ms;
 	color: #414042;
 }
 
+/* div to display or query message */
+.kuOrQueryMessage{
+	text-align: center;
+    margin-top: 10px;
+    color: #414042;
+    background: #ebebeb;
+    font-size: 13px;
+    padding: 7px 0px !important;
+    margin: 10px 15px;
+}
+
+.kuOrQueryMessage span {
+	font-weight: 600;
+}
+
+
 /* show variants */
 .kuVariants{
 	font-size: 10px;
