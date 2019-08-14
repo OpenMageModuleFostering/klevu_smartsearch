@@ -36,6 +36,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const KLEVU_PRODUCT_FORCE_OLDERVERSION = 2;
     const XML_PATH_SYNC_OPTIONS = "klevu_search/product_sync/sync_options";
     const XML_PATH_UPGRADE_PREMIUM = "klevu_search/general/premium";
+    const XML_PATH_RATING = "klevu_search/general/rating_flag";
 
     const DATETIME_FORMAT = "Y-m-d H:i:s T";
 
@@ -704,5 +705,26 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     public function saveUpgradePremium($value) {
         $this->setGlobalConfig(static::XML_PATH_UPGRADE_PREMIUM, $value);
         return $this;
+    }
+    
+    /**
+     * save upgrade rating value
+     *
+     * @param string $value
+     *
+     * @return
+     */
+    public function saveRatingUpgradeFlag($value) {
+        $this->setGlobalConfig(static::XML_PATH_RATING, $value);
+        return $this;
+    }
+    
+    /**
+     * get upgrade rating value
+     *
+     * @return int 
+     */
+    public function getRatingUpgradeFlag() {
+        return Mage::getStoreConfig(static::XML_PATH_RATING);
     }
 }

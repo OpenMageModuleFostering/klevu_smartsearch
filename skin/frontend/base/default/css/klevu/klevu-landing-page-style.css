@@ -199,7 +199,7 @@
 	display:inline;
 	height:auto;
 	min-height:25px;
-	width:100px;
+	width:120px;
 }
 
 /* div to display icons to change the view of result (grid/view) */
@@ -254,8 +254,12 @@
 	text-align:right;
 }
 
+.kuPerPage label{
+	display:inline;	
+}
+
 .kuPerPage select{
-	width:54px !important;	
+	width:auto !important;
 	height:auto;
 	min-height:25px;
 }
@@ -481,7 +485,7 @@
         overflow:hidden;
 		padding:5px;
         width:90% !important;
-        height:140px !important;
+        height:145px !important;
         text-align:center;
 		margin:0 auto;
 }
@@ -558,9 +562,9 @@
 
 .kuGridView ul li a.kuAddtocartBtn{
 	display:inline-block;
-	background: #3399cc;
+	background: #616161;
 	float:right;
-	color: #ffffff;
+	color: #fff;
 	width:72%;
 	padding-top:6px;
 	padding-bottom:6px;
@@ -574,10 +578,7 @@
 	-ms-user-select: none;
 	-o-user-select: none;
 	text-decoration:none;
-}
 
-.kuGridView ul li a.kuAddtocartBtn:hover{
-    background: #2e8ab8;
 }
 
 .kuListView ul li input[type="text"]{
@@ -589,9 +590,9 @@
 }
 
 .kuListView ul li a.kuAddtocartBtn{
-	background: #3399cc;
+	background: #616161;
 	float:none;
-	color: #ffffff;
+	color: #fff;
 	width:15%;
 	padding-top:6px;
 	padding-bottom:6px;
@@ -606,10 +607,7 @@
 	-ms-user-select: none;
 	-o-user-select: none;
 	text-decoration:none;
-}
 
-.kuListView ul li a.kuAddtocartBtn:hover{
-    background: #2e8ab8;
 }
 
 

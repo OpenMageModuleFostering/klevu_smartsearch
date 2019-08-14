@@ -64,12 +64,17 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                 if (!$this->setupSession($store)) {
                     continue;
                 }
-                
-                $session = Mage::getSingleton('klevu_search/session');
-                $firstSync = $session->getFirstSync();
-                if(!empty($firstSync)) {
-                    $this->updateProductsRating($store);
-                    $session->unsFirstSync();
+                try {
+                    $config = Mage::helper('klevu_search/config');
+                    $rating_upgrade_flag = $config->getRatingUpgradeFlag();
+                    $session = Mage::getSingleton('klevu_search/session');
+                    $firstSync = $session->getFirstSync();
+                    if(!empty($firstSync) || $rating_upgrade_flag==0) {
+                        $this->updateProductsRating($store);
+                        $session->unsFirstSync();
+                    }
+                } catch(Exception $e) {
+                    Mage::helper('klevu_search')->log(Zend_Log::WARN, sprintf("Unable to update rating attribute %s", $store->getName()));
                 }
                 //set current store so will get proper bundle price 
                 Mage::app()->setCurrentStore($store->getId());
@@ -348,6 +353,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                     // If Product Sync finished without any errors, notifications are not relevant anymore
                     $this->deleteNotifications($store);
                 }
+            }
+            // update rating flag after all store view sync
+            if($rating_upgrade_flag==0) {
+                $config->saveRatingUpgradeFlag(1);
             }
         } catch (Exception $e) {
             // Catch the exception that was thrown, log it, then throw a new exception to be caught the Magento cron.
@@ -815,9 +824,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         foreach ($products as $index => &$product) {
             //$item = $data->getItemById($product['product_id']);
             $item = Mage::getModel('catalog/product')->load($product['product_id']);
+            $item->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID);
              
             //$parent = ($product['parent_id'] != 0) ?  $data->getItemById($product['parent_id']) : null;
-            $parent = ($product['parent_id'] != 0) ?  Mage::getModel('catalog/product')->load($product['parent_id']) : null;
+            $parent = ($product['parent_id'] != 0) ?  Mage::getModel('catalog/product')->load($product['parent_id'])->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID): null;
             if (!$item) {
                 // Product data query did not return any data for this product
                 // Remove it from the list to skip syncing it
@@ -2001,37 +2011,43 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      */ 
     public function updateProductsRating($store)
     {
-        $sumColumn = new Zend_Db_Expr("AVG(rating_vote.{$this->getConnection()->quoteIdentifier('percent')})");
-        $select = $this->getConnection()->select()
-            ->from(array('rating_vote' => $this->getTableName('rating/rating_option_vote')),
-                array(
-                    'entity_pk_value' => 'rating_vote.entity_pk_value',
-                    'sum'             => $sumColumn,
-                    ))
-            ->join(array('review' => $this->getTableName('review/review')),
-                'rating_vote.review_id=review.review_id',
-                array())
-            ->joinLeft(array('review_store' => $this->getTableName('review/review_store')),
-                'rating_vote.review_id=review_store.review_id',
-                array('review_store.store_id'))
-            ->join(array('rating_store' => $this->getTableName('rating/rating_store')),
-                'rating_store.rating_id = rating_vote.rating_id AND rating_store.store_id = review_store.store_id',
-                array())
-            ->join(array('review_status' => $this->getTableName('review/review_status')),
-                'review.status_id = review_status.status_id',
-                array())
-            ->where('review_status.status_code = :status_code AND rating_store.store_id = :storeId')
-            ->group('rating_vote.entity_pk_value')
-            ->group('review_store.store_id');
-        $bind = array('status_code' => "Approved",'storeId' => $store->getId());
-        $data_ratings = $this->getConnection()->fetchAll($select,$bind);
-        $allStores = Mage::app()->getStores();
-        foreach($data_ratings as $key => $value)
-        {
-            Mage::getModel('catalog/product_action')->updateAttributes(array($value['entity_pk_value']), array('rating'=>$value['sum']), $store->getId());
-            if(count($allStores) > 1) {
-                Mage::getModel('catalog/product_action')->updateAttributes(array($value['entity_pk_value']), array('rating'=>0),0);
-            }    
+        $entity_type = Mage::getSingleton("eav/entity_type")->loadByCode("catalog_product");
+        $entity_typeid = $entity_type->getId();
+        $attributecollection = Mage::getModel("eav/entity_attribute")->getCollection()->addFieldToFilter("entity_type_id", $entity_typeid)->addFieldToFilter("attribute_code", "rating");
+        if(count($attributecollection) > 0) {
+            $sumColumn = new Zend_Db_Expr("AVG(rating_vote.{$this->getConnection()->quoteIdentifier('percent')})");
+            $select = $this->getConnection()->select()
+                ->from(array('rating_vote' => $this->getTableName('rating/rating_option_vote')),
+                    array(
+                        'entity_pk_value' => 'rating_vote.entity_pk_value',
+                        'sum'             => $sumColumn,
+                        ))
+                ->join(array('review' => $this->getTableName('review/review')),
+                    'rating_vote.review_id=review.review_id',
+                    array())
+                ->joinLeft(array('review_store' => $this->getTableName('review/review_store')),
+                    'rating_vote.review_id=review_store.review_id',
+                    array('review_store.store_id'))
+                ->join(array('rating_store' => $this->getTableName('rating/rating_store')),
+                    'rating_store.rating_id = rating_vote.rating_id AND rating_store.store_id = review_store.store_id',
+                    array())
+                ->join(array('review_status' => $this->getTableName('review/review_status')),
+                    'review.status_id = review_status.status_id',
+                    array())
+                ->where('review_status.status_code = :status_code AND rating_store.store_id = :storeId')
+                ->group('rating_vote.entity_pk_value')
+                ->group('review_store.store_id');
+            $bind = array('status_code' => "Approved",'storeId' => $store->getId());
+            $data_ratings = $this->getConnection()->fetchAll($select,$bind);
+            $allStores = Mage::app()->getStores();
+            foreach($data_ratings as $key => $value)
+            {
+                if(count($allStores) > 1) {
+                    Mage::getModel('catalog/product_action')->updateAttributes(array($value['entity_pk_value']), array('rating'=>0),0);
+                }
+                Mage::getModel('catalog/product_action')->updateAttributes(array($value['entity_pk_value']), array('rating'=>$value['sum']), $store->getId());
+                Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("Rating is updated for product id %s",$value['entity_pk_value']));
+            }
         }
    }
    

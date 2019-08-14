@@ -185,13 +185,23 @@ class Klevu_Search_Model_Observer extends Varien_Object {
                 $productId = $object->getEntityPkValue();
                 $ratingObj = Mage::getModel('rating/rating')->getEntitySummary($productId);
                 $ratings = $ratingObj->getSum()/$ratingObj->getCount();
-                /* update attribute */
-                Mage::getModel('catalog/product_action')->updateAttributes(array($productId), array('rating'=>$ratings), $object->getStoreId());
-                if(count($allStores) > 1) {
-                    Mage::getModel('catalog/product_action')->updateAttributes(array($productId), array('rating'=>0),0);
+                $entity_type = Mage::getSingleton("eav/entity_type")->loadByCode("catalog_product");
+                $entity_typeid = $entity_type->getId();
+                $attributecollection = Mage::getModel("eav/entity_attribute")->getCollection()->addFieldToFilter("entity_type_id", $entity_typeid)->addFieldToFilter("attribute_code", "rating");
+                if(count($attributecollection) > 0) {
+                    if(count($object->getData('stores')) > 0) {
+                        foreach($object->getData('stores') as $key => $value) {
+                            Mage::getModel('catalog/product_action')->updateAttributes(array($productId), array('rating'=>$ratings),$value);
+                        }
+                    }
+                    /* update attribute */
+                    if(count($allStores) > 1) {
+                        Mage::getModel('catalog/product_action')->updateAttributes(array($productId), array('rating'=>0),0);
+                    }
+
+                    /* mark product for update to sync data with klevu */
+                    Mage::getModel('klevu_search/product_sync')->updateSpecificProductIds(array($productId));
                 }
-                /* mark product for update to sync data with klevu */
-                Mage::getModel('klevu_search/product_sync')->updateSpecificProductIds(array($productId));
             }
         } catch (Exception $e) {
             Mage::helper('klevu_search')->log(Zend_Log::CRIT, sprintf("Exception thrown in %s::%s - %s", __CLASS__, __METHOD__, $e->getMessage()));
