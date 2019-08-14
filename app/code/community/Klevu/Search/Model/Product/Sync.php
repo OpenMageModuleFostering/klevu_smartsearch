@@ -937,29 +937,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             }
                         }
                         break;
-                        case "price":
-                            if ($parent) {
-                                if ($parent && $parent->getData("type_id") == Mage_Catalog_Model_Product_Type_Configurable::TYPE_CODE) {
-                                    $price = (isset($price_data[$product['parent_id']])) ? $price_data[$product['parent_id']]['price'] : $parent->getData("price");
-                                    $markup = 0;
-                                    foreach($configurable_price_data[$product['parent_id']] as $attribute => $pricing_data) {
-                                        $value = $item->getData($attribute);
-                                        if ($value && isset($pricing_data[$value])) {
-                                            if ($pricing_data[$value]["is_percent"]) {
-                                                $markup += $price * ($pricing_data[$value]["value"] / 100);
-                                            } else {
-                                                $markup += $pricing_data[$value]["value"];
-                                            }
-                                        }
-                                    }
-                                    $product["price"] =  $this->processPrice($price+$markup,$tax_class_id);
-                                }else {
-                                    $product["price"] = $this->processPrice($parent->getData("price"),$tax_class_id);
-                                }
-                            } else if ($item->getData("price") !== null ) {
-                                    $product["price"] = $this->processPrice($item->getData("price"),$tax_class_id);
-                            }
-                        break;
                     default:
                         foreach ($attributes as $attribute) {
                             if ($item->getData($attribute)) {

@@ -563,7 +563,6 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
                 "short_description",
                 "price",
                 "tax_class_id",
-                "price",
                 "weight"),
             "klevu_attribute" => array(
                 "name",
@@ -573,7 +572,6 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
                 "shortDesc",
                 "salePrice",
                 "salePrice",
-                "price",
                 "weight"
             )
         );
