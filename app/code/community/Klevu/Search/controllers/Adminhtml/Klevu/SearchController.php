@@ -55,6 +55,9 @@ class Klevu_Search_Adminhtml_Klevu_SearchController extends Mage_Adminhtml_Contr
         Mage::getModel("klevu_search/product_sync")->runManually();
         /* Use event For other content sync */
         Mage::dispatchEvent('content_data_to_sync', array());
+        Mage::getSingleton('klevu_search/session')->unsFirstSync();
+        $storeId = Mage_Core_Model_App::ADMIN_STORE_ID;
+        Mage::app()->setCurrentStore($storeId);
         return $this->_redirectReferer("adminhtml/dashboard");
     }
     
@@ -68,6 +71,8 @@ class Klevu_Search_Adminhtml_Klevu_SearchController extends Mage_Adminhtml_Contr
         } catch (Mage_Core_Model_Store_Exception $e) {
             Mage::logException($e);
         }
+        $storeId = Mage_Core_Model_App::ADMIN_STORE_ID;
+        Mage::app()->setCurrentStore($storeId);
         return $this->_redirectReferer("adminhtml/dashboard");
     }
     
@@ -77,4 +82,8 @@ class Klevu_Search_Adminhtml_Klevu_SearchController extends Mage_Adminhtml_Contr
         Mage::helper('klevu_search/config')->saveSyncOptions($sync_options);
     }
     
+    protected function _isAllowed()
+    {
+        return true;
+    }
 }

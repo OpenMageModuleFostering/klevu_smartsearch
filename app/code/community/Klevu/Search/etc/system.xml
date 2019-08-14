@@ -26,7 +26,7 @@
                 </information>
                 <general translate="label">
                     <label>General Settings</label>
-                    <sort_order>100</sort_order>
+                    <sort_order>2</sort_order>
                     <expanded>1</expanded>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
@@ -106,31 +106,50 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>1</show_in_store>
                         </js_url>
-
+                        <tiers_url translate="label comment">
+                            <label>Tiers URL</label>
+                            <comment><![CDATA[The Tiers URL is used for getting Klevu's Search Tires]]></comment>
+                            <sort_order>200</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </tiers_url>
                     </fields>
                 </general>
                 <searchlanding translate="label">
-                    <label>Search Result Page Settings</label>
+                    <label>Search Result Page</label>
                     <sort_order>101</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
+                    <comment>                     
+                    <![CDATA[<div class="kuGuideLink"><a target="_blank" href="http://support.klevu.com/section/manuals/magento-manuals/search-result-page/">Quick Guide</a></div>
+                     ]]></comment>
                     <fields>
+                        <landenabled_info translate="label comment">
+                            <label></label>
+                            <comment><![CDATA[Switch to store view scope to set.]]></comment>
+                            <sort_order>100</sort_order>
+                            <frontend_type>label</frontend_type>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </landenabled_info>
                         <landenabled translate="label">
                             <label>Search Result Page</label>
-                            <comment><![CDATA[** "Preserves Your Theme Layout" option preserves layout of your theme.]]></comment>
+                            <comment><model>klevu_search/adminhtml_comment</model></comment>
                             <frontend_type>select</frontend_type>
                             <source_model>klevu_search/system_config_source_landingoptions</source_model>
                             <sort_order>100</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
                             <show_in_store>1</show_in_store>
                         </landenabled>
                     </fields>
                 </searchlanding>
                 <product_sync translate="label">
                     <label>Product Sync Settings</label>
-                    <sort_order>250</sort_order>
+                    <sort_order>3</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
@@ -192,7 +211,7 @@
                 </product_sync>
                 <order_sync translate="label">
                     <label>Order Sync Settings</label>
-                    <sort_order>201</sort_order>
+                    <sort_order>4</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_default>1</show_in_default>
                     <show_in_store>1</show_in_store>
@@ -228,15 +247,37 @@
                         </last_run>
                     </fields>
                 </order_sync>
+                <attribute_boost>
+                    <label>Boosting Attribute Settings</label>
+                    <sort_order>5</sort_order>
+                    <show_in_default>0</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <boosting translate="label comment">
+                            <label>Boosting Attribute</label>
+                            <comment><![CDATA[Select the attribute you wish to use as the Boosting attribute in Klevu. The Boosting attribute is a decimal or integer product attribute. To promote a product simply give the product a score higher than 1 and to demote give a score lower than 1 (i.e. 0.1).]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_boosting_attribute</source_model>
+                            <sort_order>800</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </boosting>
+                    </fields>
+                </attribute_boost>
                 <attributes translate="label">
-                    <label>Product Attribute Settings</label>
-                    <sort_order>101</sort_order>
+                    <label><![CDATA[Searchable ​Attributes & Facets]]></label>
+                    <sort_order>5</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
+                    <comment>                     
+                    <![CDATA[<div class="kuGuideLink"><a target="_blank" href="http://support.klevu.com/section/manuals/magento-manuals/facet-filter/">Quick Guide</a></div>
+                     ]]></comment>
                     <fields>
                         <info_attribute translate="label comment">
-                            <label>Attribute Settings</label>
+                            <label></label>
                             <comment><![CDATA[Switch to store view scope to set]]></comment>
                             <frontend_type>label</frontend_type>
                             <sort_order>100</sort_order>
@@ -264,16 +305,6 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </automatic>
-                        <boosting translate="label comment">
-                            <label>Boosting Attribute</label>
-                            <comment><![CDATA[Select the attribute you wish to use as the Boosting attribute in Klevu. The Boosting attribute is a decimal or integer product attribute. To promote a product simply give the product a score higher than 1 and to demote give a score lower than 1 (i.e. 0.1).]]></comment>
-                            <frontend_type>select</frontend_type>
-                            <source_model>klevu_search/system_config_source_boosting_attribute</source_model>
-                            <sort_order>800</sort_order>
-                            <show_in_default>0</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </boosting>
                         <other translate="label comment">
                             <label>Other Attributes To Use In Search</label>
                             <comment><![CDATA[By default, Klevu uses the following attributes in search: name, sku, description, short_description, price and rating. To add more attributes to search, please select one or more attributes from the list above. Once you have selected the respective attributes, please make sure to resynchronize all the products.]]></comment>
@@ -294,18 +325,20 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>1</show_in_store>
                         </info_attribute_filters>
-                       
                     </fields>
                 </attributes>
                 <tax_setting translate="label">
-                    <label>Tax Settings</label>
-                    <sort_order>898</sort_order>
+                    <label>Tax in Price</label>
+                    <sort_order>7</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>0</show_in_website>
                     <show_in_store>1</show_in_store>
+                    <comment>                     
+                    <![CDATA[<div class="kuGuideLink"><a target="_blank" href="http://support.klevu.com/knowledgebase/include-tax-in-price/">Quick Guide</a></div>
+                     ]]></comment>
                     <fields>
                         <info_enabled translate="label comment">
-                            <label>Include Tax in Price</label>
+                            <label></label>
                             <comment><![CDATA[Switch to store view scope to set]]></comment>
                             <frontend_type>label</frontend_type>
                             <sort_order>100</sort_order>
@@ -326,15 +359,18 @@
                     </fields>
                 </tax_setting>
                 <secureurl_setting translate="label">
-                    <label>Secure Url Settings</label>
-                    <sort_order>899</sort_order>
+                    <label>Secure URL</label>
+                    <sort_order>8</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>0</show_in_website>
                     <show_in_store>1</show_in_store>
                     <expanded>0</expanded>
+                    <comment>                     
+                    <![CDATA[<div class="kuGuideLink"><a target="_blank" href="http://support.klevu.com/knowledgebase/use-secure-base-url-for-products-and-images/">Quick Guide</a></div>
+                     ]]></comment>                    
                     <fields>
                         <info_enabled translate="label comment">
-                            <label>Use Secure Base Url for Products and Images</label>
+                            <label></label>
                             <comment><![CDATA[Switch to store view scope to set]]></comment>
                             <frontend_type>label</frontend_type>
                             <sort_order>100</sort_order>

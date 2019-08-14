@@ -19,6 +19,7 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
     public function createUser($email, $password, $userPlan, $partnerAccount, $url, $merchantEmail,$contactNo) {
         $user = Mage::getSingleton('admin/session');
         $userEmail = $user->getUser()->getEmail();
+        $mageVersionInfo = Mage::getVersion();
         $storePhone = Mage::getStoreConfig('general/store_information/phone');
         $response = Mage::getModel("klevu_search/api_action_adduser")->execute(array(
             "email"    => $email,
@@ -28,7 +29,8 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
             "url"      => $url,
             "merchantEmail" => $merchantEmail,
             "contactNo" => $contactNo,
-            "shopInfo" => $userEmail.";".$storePhone,
+            "bmVersion" => 1,
+            "shopInfo" => $userEmail.";".$storePhone.";".$mageVersionInfo,
         ));
 
         if ($response->isSuccessful()) {
@@ -101,6 +103,33 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
             );
         }
     }
+    
+    
+    /**
+     * Retrieve the information of already Klevu user registered from the API.
+     *
+     * @param $email
+     *
+     * @return array An array containing the following keys:
+     *                 success: boolean value indicating whether the operation was successful.
+     *                 message: (on failure only) Error message to be shown to the user.
+     */
+    public function checkUserDetail($email) {
+        $response = Mage::getModel("klevu_search/api_action_checkuserdetail")->execute(array(
+            "email"    => $email,
+        ));
+
+        if ($response->isSuccessful()) {
+            return array(
+                "success"     => true,
+            );
+        } else {
+            return array(
+                "success" => false,
+                "message" => $response->getMessage()
+            );
+        }
+    }
 
     /**
      * Create a Klevu Webstore using the API for the given Magento store.
@@ -141,7 +170,6 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
             "locale"     => $locale,
             "testMode"   => $test_mode,
         ));
-
         if ($response->isSuccessful()) {
             $webstore = new Varien_Object(array(
                 "store_name"           => $name,
@@ -153,6 +181,7 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
                 "analytics_url"        => $response->getAnalyticsUrl(),
                 "js_url"               => $response->getJsUrl(),
                 "rest_hostname"        => $response->getRestUrl(),
+                "tires_url"            => $response->getTiersUrl(),
             ));
 
             return array(

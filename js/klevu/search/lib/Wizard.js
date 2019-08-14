@@ -152,7 +152,7 @@ function showPopup(sUrl) {
     id:'popup_window',
     className: 'magento',
     url: sUrl,
-    title: "Klevu Search Pro Features",
+    title: "Compare Plans",
     width: 1000,
     height: 600,
     minimizable: false,
@@ -169,12 +169,46 @@ function showPopup(sUrl) {
     oPopup.showCenter(true);
 }
 
+function showTermsPopup(sUrl) {
+    oPopup = new Window({
+    id:'popup_window',
+    className: 'magento',
+    url: sUrl,
+    title: "Terms of Service",
+    width: 1000,
+    height: 600,
+    minimizable: false,
+    maximizable: false,
+    showEffectOptions: {
+        duration: 0.4
+    },
+    hideEffectOptions:{
+        duration: 0.4
+    },
+    destroyOnClose: true
+    });
+    oPopup.setZIndex(100);
+    oPopup.showCenter(true);
+}
+
+
 function closePopup() {
     Windows.close('popup_window');
 }
 
-function checkplan()
+function compareplan()
 {
- showPopup("http://www.klevu.com/magento-free-vs-pro.html");
+ showPopup("http://www.klevu.com/support/magento-links/compare-plans.html");
+}
+
+function termsofservice()
+{
+ showTermsPopup("http://www.klevu.com/support/magento-links/terms-of-service.html");
+}
+
+function upgradeLink(url){
+  window.open(url,'_blank');
 }
 var klevu_search_wizard_configure_user_form = new varienForm('klevu_search_wizard_configure_user_form');
+
+

@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Klevu_Search>
-            <version>1.1.26</version>
+            <version>1.2.0</version>
         </Klevu_Search>
     </modules>
     <global>
@@ -10,6 +10,11 @@
             <klevu_search>
                 <class>Klevu_Search_Block</class>
             </klevu_search>
+            <adminhtml>
+                <rewrite>
+                    <system_config_form_field>Klevu_Search_Block_Adminhtml_System_Config_Form_Field</system_config_form_field>
+                </rewrite>
+            </adminhtml>
         </blocks>
         <helpers>
             <klevu_search>
@@ -171,6 +176,24 @@
                     </klevu_search_categroy_product_sync>
                 </observers>
             </catalog_category_change_products>
+            <catalog_category_save_after>
+                <observers>
+                    <catalog_category_page_prepare_save>
+                        <type>singleton</type>
+                        <class>klevu_search/observer</class>
+                        <method>scheduleProductSync</method>
+                    </catalog_category_page_prepare_save>
+                </observers>
+            </catalog_category_save_after>
+            <catalog_controller_category_delete>
+                <observers>
+                    <catalog_controller_category_delete_page>
+                        <type>singleton</type>
+                        <class>klevu_search/observer</class>
+                        <method>scheduleProductSync</method>
+                    </catalog_controller_category_delete_page>
+                </observers>
+            </catalog_controller_category_delete>
             <review_save_after>
                 <observers>
                     <ratingsUpdate>
@@ -180,6 +203,24 @@
                     </ratingsUpdate>
                 </observers>
             </review_save_after>
+            <catalogrule_before_apply>
+                <observers>
+                    <catalogruleexpiryupdatebefore>
+                        <type>singleton</type> 
+                        <class>klevu_search/product_sync</class>
+                        <method>catalogruleupdateifno</method>
+                    </catalogruleexpiryupdatebefore>
+                </observers>
+            </catalogrule_before_apply>
+            <catalogrule_after_apply>
+                <observers>
+                    <catalogruleexpiryupdateafter>
+                        <type>singleton</type> 
+                        <class>klevu_search/product_sync</class>
+                        <method>catalogruleupdateifno</method>
+                    </catalogruleexpiryupdateafter>
+                </observers>
+            </catalogrule_after_apply>
         </events>
     </global>
     <admin>
@@ -243,6 +284,7 @@
                     <model>klevu_search/order_sync::run</model>
                 </run>
             </klevu_search_order_sync>
+   
         </jobs>
     </crontab>
     <default>
@@ -259,6 +301,7 @@
                 <test_analytics_url>stats.klevu.com</test_analytics_url>
                 <js_url>js.klevu.com</js_url>
                 <test_js_url>js.klevu.com</test_js_url>
+                <tiers_url>tiers.klevu.com</tiers_url>
             </general>
             <product_sync>
                 <enabled>1</enabled>

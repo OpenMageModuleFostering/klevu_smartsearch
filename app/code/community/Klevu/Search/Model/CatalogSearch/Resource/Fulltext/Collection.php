@@ -8,7 +8,7 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
      */
     protected $_klevu_parameters;
     protected $_klevu_tracking_parameters;
-    protected $_klevu_type_of_records = null;
+    protected $_klevu_type_of_records = 'KLEVU_PRODUCT';
 
     /**
      * Klevu Search API Product IDs

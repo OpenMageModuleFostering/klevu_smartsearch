@@ -17,7 +17,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_ATTRIBUTES_ADDITIONAL  = "klevu_search/attributes/additional";
     const XML_PATH_ATTRIBUTES_AUTOMATIC  = "klevu_search/attributes/automatic";
     const XML_PATH_ATTRIBUTES_OTHER       = "klevu_search/attributes/other";
-    const XML_PATH_ATTRIBUTES_BOOSTING       = "klevu_search/attributes/boosting";
+    const XML_PATH_ATTRIBUTES_BOOSTING       = "klevu_search/attribute_boost/boosting";
     const XML_PATH_ORDER_SYNC_ENABLED   = "klevu_search/order_sync/enabled";
     const XML_PATH_ORDER_SYNC_FREQUENCY = "klevu_search/order_sync/frequency";
     const XML_PATH_ORDER_SYNC_LAST_RUN = "klevu_search/order_sync/last_run";
@@ -37,8 +37,12 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_SYNC_OPTIONS = "klevu_search/product_sync/sync_options";
     const XML_PATH_UPGRADE_PREMIUM = "klevu_search/general/premium";
     const XML_PATH_RATING = "klevu_search/general/rating_flag";
+    const XML_PATH_UPGRADE_FEATURES = "klevu_search/general/upgrade_features";
+    const XML_PATH_UPGRADE_TIRES_URL = "klevu_search/general/tiers_url";
 
     const DATETIME_FORMAT = "Y-m-d H:i:s T";
+    protected $_klevu_features_response;
+    protected $_klevu_enabled_feature_response;
 
     /**
      * Set the Enable on Frontend flag in System Configuration for the given store.
@@ -318,6 +322,27 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
         $this->setStoreConfig($path, $url, $store);
         return $this;
     }
+    
+    /**
+     * @param $url
+     * @param null $store
+     * @param bool $test_mode
+     * @return $this
+     */
+    public function setTiresUrl($url, $store = null, $test_mode = false) {
+        $path = static::XML_PATH_UPGRADE_TIRES_URL;
+        $this->setStoreConfig($path, $url, $store);
+        return $this;
+    }
+    
+    /**
+     * @param null $store
+     * @return string
+     */
+    public function getTiresUrl($store = null) {
+        $url = Mage::getStoreConfig(static::XML_PATH_UPGRADE_TIRES_URL,$store);
+        return ($url) ? $url : Klevu_Search_Helper_Api::ENDPOINT_DEFAULT_HOSTNAME;
+    }
 
     /**
      * @param null $store
@@ -591,6 +616,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
                 "description",
                 "short_description",
                 "price",
+                "price",
                 "tax_class_id",
                 "weight",
                 "rating"),
@@ -600,6 +626,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
                 "image",
                 "desc",
                 "shortDesc",
+                "price",
                 "salePrice",
                 "salePrice",
                 "weight",
@@ -727,4 +754,70 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     public function getRatingUpgradeFlag() {
         return Mage::getStoreConfig(static::XML_PATH_RATING);
     }
+    
+    /**
+     * get feature update
+     *
+     * @return bool 
+     */
+    public function getFeaturesUpdate($elemnetID) {
+        try {
+            if (!$this->_klevu_features_response) {
+                $this->_klevu_features_response = Mage::getModel("klevu_search/product_sync")->getFeatures();
+            }
+            $features = $this->_klevu_features_response;
+            if(!empty($features) && !empty($features['disabled'])) {
+                $checkStr = explode("_",$elemnetID);
+                $disable_features =  explode(",",$features['disabled']);
+                $code = Mage::app()->getRequest()->getParam('store');// store level
+                $store = Mage::getModel('core/store')->load($code);
+                if(in_array("preserves_layout", $disable_features) && Mage::app()->getRequest()->getParam('section')=="klevu_search") {
+                    // when some upgrade plugin if default value set to 1 means preserve layout
+                    // then convert to klevu template layout
+                    if(Mage::getStoreConfig(Klevu_Search_Helper_Config::XML_PATH_LANDING_ENABLED,$store) == 1){
+                        $this->setStoreConfig(Klevu_Search_Helper_Config::XML_PATH_LANDING_ENABLED,2,$store);
+                    }
+                }
+                if (in_array($checkStr[count($checkStr)-1], $disable_features)  && Mage::app()->getRequest()->getParam('section')=="klevu_search") {
+                        $check = $checkStr[count($checkStr)-1];
+                        if(!empty($check)) {
+                            $configs = Mage::getModel('core/config_data')->getCollection()
+                            ->addFieldToFilter('path', array("like" => '%/'.$check.'%'))->load();
+                            $data = $configs->getData();
+                            if(!empty($data)) {
+                                $this->setStoreConfig($data[0]['path'],0,$store);
+                            }
+                            return $features;
+                        }
+                }
+      
+            }                
+        } catch(Exception $e) {
+                Mage::helper('klevu_search')->log(Zend_Log::CRIT, sprintf("Error occured while getting features based on account %s::%s - %s", __CLASS__, __METHOD__, $e->getMessage()));
+        }
+        return;
+    }
+    
+    
+    public function  executeFeatures($restApi,$store) {
+        if(!$this->_klevu_enabled_feature_response) {
+            $param =  array("restApiKey" => $restApi,"store" => $store->getId());
+            $features_request = Mage::getModel("klevu_search/api_action_features")->execute($param);
+            if($features_request->isSuccessful() === true) {
+                $this->_klevu_enabled_feature_response = $features_request->getData();
+                $this->saveUpgradeFetaures(serialize($this->_klevu_enabled_feature_response),$store);
+            } else {
+                if(!empty($restApi)) {
+                    $this->_klevu_enabled_feature_response = unserialize(Mage::getStoreConfig(static::XML_PATH_UPGRADE_FEATURES, $store));
+                }
+                Mage::helper('klevu_search')->log(Zend_Log::INFO,sprintf("failed to fetch feature details (%s)",$features_request->getMessage()));
+            }
+        }  
+        return $this->_klevu_enabled_feature_response;        
+    }
+    
+    public function saveUpgradeFetaures($value,$store=null) {
+        $this->setStoreConfig(static::XML_PATH_UPGRADE_FEATURES,$value,$store);
+    }
+    
 }

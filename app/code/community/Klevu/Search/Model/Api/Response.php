@@ -98,6 +98,7 @@ class Klevu_Search_Model_Api_Response extends Varien_Object {
                 default:
                     $message = "Unexpected error.";
             }
+
             $this->setMessage(sprintf("Failed to connect to Klevu: %s", $message));
             Mage::helper('klevu_search')->log(Zend_Log::ERR, sprintf("Unsuccessful HTTP response: %s %s", $response->getStatus(), $response->responseCodeAsText($response->getStatus())));
         }

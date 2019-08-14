@@ -2,7 +2,53 @@
 
 class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtml_Controller_Action {
     
-    
+    public function configure_userplanAction() {
+        $this->loadLayout();
+        $this->initLayoutMessages('klevu_search/session');
+        $this->renderLayout();
+    }
+
+    public function configure_userplan_postAction() {
+        /* if partner account selected as UserPlan then change plan to trial*/
+                $partnerAccount = false;
+                $request = $this->getRequest();
+                $session = Mage::getSingleton('klevu_search/session');
+                $userPlan = $request->getPost("userPlan");
+                if($userPlan=="partnerAccount"){
+                   $partnerAccount = true;
+                }
+                 
+                if(empty($userPlan)) {
+                    $session->addError(Mage::helper("klevu_search")->__("Not sure, which plan to select? Select Premium to try all features free for 14-days."));
+                    return $this->_forward("configure_userplan");
+                
+                }
+                
+                $api = Mage::helper("klevu_search/api");
+                $result = $api->createUser(
+                    Mage::getSingleton('core/session')->getKlevuNewEmail(),
+                    Mage::getSingleton('core/session')->getKlevuNewPassword(),
+                    $userPlan,
+                    $partnerAccount,
+                    Mage::getSingleton('core/session')->getKlevuNewUrl(),
+                    Mage::getSingleton('core/session')->getMerchantEmail(),
+                    Mage::getSingleton('core/session')->getContactNo()
+                );
+                
+        if ($result["success"]) {
+            $session->setConfiguredCustomerId($result["customer_id"]);
+            if (isset($result["message"])) {
+                $session->addSuccess(Mage::helper("klevu_search")->__($result["message"]));
+            }
+            return $this->_forward("configure_store");
+        } else {
+            $session->addError(Mage::helper("klevu_search")->__($result["message"]));
+            return $this->_forward("configure_userplan");
+        }
+       
+       
+        return $this->_forward("configure_store");
+    }    
     public function configure_userAction() {
         $this->loadLayout();
         $this->initLayoutMessages('klevu_search/session');
@@ -19,13 +65,26 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
 
         $api = Mage::helper("klevu_search/api");
         $session = Mage::getSingleton('klevu_search/session');
-         
+        Mage::getSingleton('core/session')->setHideStep("no"); 
         if ($request->getPost("klevu_existing_email")) {
             $result = $api->getUser(
                 $request->getPost("klevu_existing_email"),
                 $request->getPost("klevu_existing_password")
             );
+            
+            if ($result["success"]) {
+                Mage::getSingleton('core/session')->setHideStep("yes");
+                $session->setConfiguredCustomerId($result["customer_id"]);
+                if (isset($result["message"])) {
+                    $session->addSuccess(Mage::helper("klevu_search")->__($result["message"]));
+                }
+                return $this->_forward("configure_store");
+            } else {
+                $session->addError(Mage::helper("klevu_search")->__($result["message"]));
+                return $this->_forward("configure_user");
+            }
         } else {
+            $termsconditions = $request->getPost("termsconditions");
             $klevu_new_email = $request->getPost("klevu_new_email");
             $klevu_new_password = $request->getPost("klevu_new_password");
             $userPlan = $request->getPost("userPlan");
@@ -34,8 +93,8 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
             $merchantEmail = $request->getPost("merchantEmail");
             $contactNo = $request->getPost("countyCode")."-".$request->getPost("contactNo");
             $error = true;
-            if(empty($klevu_new_email) && empty($klevu_new_password) && empty($userPlan) && empty($klevu_new_url)
-            && empty($merchantEmail) ) {
+            if(empty($klevu_new_email) || empty($klevu_new_password) || empty($klevu_new_url)
+            || empty($merchantEmail) ) {
                 $session->addError(Mage::helper("klevu_search")->__("Missing details in the form. Please check."));
                 return $this->_forward("configure_user");
             } else if(!preg_match("/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i",$klevu_new_email)) {
@@ -44,34 +103,30 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
             } else if(!preg_match("/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i",$merchantEmail)) {
                 $session->addError(Mage::helper("klevu_search")->__("Please enter valid Retailer Email."));
                 return $this->_forward("configure_user");
+            }else if(empty($termsconditions)){
+                $session->addError(Mage::helper("klevu_search")->__("Please accept terms and conditions."));
+                return $this->_forward("configure_user");
             }else {
-                /* if partner account selected as UserPlan then change plan to trial*/
-                if($userPlan=="partnerAccount"){
-                   $userPlan = "trial";
-                   $partnerAccount = true;
-                }
-                $result = $api->createUser(
-                    $request->getPost("klevu_new_email"),
-                    $request->getPost("klevu_new_password"),
-                    $userPlan,
-                    $partnerAccount,
-                    $request->getPost("klevu_new_url"),
-                    $request->getPost("merchantEmail"),
-                    $contactNo
-                );
+                   
+                    $result = $api->checkUserDetail(
+                        $request->getPost("klevu_new_email")
+                    );
+                    if ($result["success"]) {
+                        Mage::getSingleton('core/session')->setTermsconditions($request->getPost("termsconditions"));
+                        Mage::getSingleton('core/session')->setKlevuNewEmail($request->getPost("klevu_new_email"));
+                        Mage::getSingleton('core/session')->setKlevuNewPassword($request->getPost("klevu_new_password"));
+                        Mage::getSingleton('core/session')->setKlevuNewUrl($request->getPost("klevu_new_url"));
+                        Mage::getSingleton('core/session')->setMerchantEmail($request->getPost("merchantEmail"));
+                        $contactNo = $request->getPost("countyCode")."-".$request->getPost("contactNo");
+                        Mage::getSingleton('core/session')->setContactNo($contactNo);
+                        return $this->_forward("configure_userplan");
+                    } else {
+                            $session->addError(Mage::helper("klevu_search")->__($result["message"]));
+                            return $this->_forward("configure_user");
+                    }
             }
         }
-        
-        if ($result["success"]) {
-            $session->setConfiguredCustomerId($result["customer_id"]);
-            if (isset($result["message"])) {
-                $session->addSuccess(Mage::helper("klevu_search")->__($result["message"]));
-            }
-            return $this->_forward("configure_store");
-        } else {
-            $session->addError(Mage::helper("klevu_search")->__($result["message"]));
-            return $this->_forward("configure_user");
-        }
+
     }
 
     public function configure_storeAction() {
@@ -94,8 +149,8 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
     }
 
     public function configure_store_postAction() {
-        $request = $this->getRequest();
 
+        $request = $this->getRequest();
         if (!$request->isPost() || !$request->isAjax()) {
             return $this->_redirect("adminhtml/dashboard");
         }
@@ -134,6 +189,7 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
                 $config->setAnalyticsUrl($result['webstore']->getAnalyticsUrl(), $store, $test_mode);
                 $config->setJsUrl($result['webstore']->getJsUrl(), $store, $test_mode);
                 $config->setRestHostname($result['webstore']->getRestHostname(), $store, $test_mode);
+                $config->setTiresUrl($result['webstore']->getTiresUrl(), $store, $test_mode);
                 if (isset($result["message"])) {
                     $session->addSuccess(Mage::helper("klevu_search")->__($result["message"]));
                     $session->setFirstSync($store_code);
@@ -143,8 +199,7 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
                 return $this->_forward("configure_store");
             }
         }
-
-
+        
         $config->setTaxEnabledFlag($request->getPost("tax_enable"), $store);
         $config->setSecureUrlEnabledFlag($request->getPost("secureurl_setting"), $store);
 

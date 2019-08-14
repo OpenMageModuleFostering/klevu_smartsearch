@@ -96,7 +96,17 @@ class Klevu_Search_Model_Observer extends Varien_Object {
      * @param Varien_Event_Observer $observer
      */
     public function createThumb(Varien_Event_Observer $observer) {
-
+    
+        try {
+            if($observer->getEvent()->getProduct()->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_SIMPLE){        
+                $parentIds = Mage::getResourceSingleton('bundle/selection')->getParentIdsByChild($observer->getEvent()->getProduct()->getId());
+                if(count($parentIds) > 0 && !empty($parentIds)) {
+                    Mage::getModel("klevu_search/product_sync")->updateSpecificProductIds($parentIds);
+                }
+            }
+        } catch(Exception $e) {
+            Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("error while updating bundle product id :\n%s", $e->getMessage()));
+        }
         $image = $observer->getEvent()->getProduct()->getImage();
         if(($image != "no_selection") && (!empty($image))) {
             try {
@@ -208,5 +218,4 @@ class Klevu_Search_Model_Observer extends Varien_Object {
         }
     }
     
- 
 }

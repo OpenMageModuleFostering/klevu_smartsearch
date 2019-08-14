@@ -203,9 +203,10 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return
      */    
     public function getGroupProductMinPrice($product,$store){
-        $groupProductIds = $product->getTypeInstance()->getChildrenIds($product->getId());
-        $config = Mage::helper('klevu_search/config');
-        $groupPrices = array();
+        try {
+            $groupProductIds = $product->getTypeInstance()->getChildrenIds($product->getId());
+            $config = Mage::helper('klevu_search/config');
+            $groupPrices = array();
             foreach ($groupProductIds as $ids) {
                 foreach ($ids as $id) {
                     $groupProduct = Mage::getModel('catalog/product')->load($id);
@@ -216,8 +217,11 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
                     }
                 }
             }
-        asort($groupPrices);
-        $product->setFinalPrice(array_shift($groupPrices));       
+            asort($groupPrices);
+            $product->setFinalPrice(array_shift($groupPrices));
+        } catch(Exception $e) {
+            Mage::helper('klevu_search')->log(Zend_Log::WARN, sprintf("Unable to get group price for product id %s",$product->getId()));
+        }            
     }
     
     /**
@@ -228,20 +232,82 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return
      */    
     public function getBundleProductPrices($item,$store){
-        $config = Mage::helper('klevu_search/config');
-        if($config->isTaxEnabled($store->getId())) {
-            if (version_compare(Mage::getVersion(), "1.6.0.0", "<")) {
-                return $item->getPriceModel()->getPricesDependingOnTax($item,null,true);
+        try {
+            $config = Mage::helper('klevu_search/config');
+            if($config->isTaxEnabled($store->getId())) {
+                if (version_compare(Mage::getVersion(), "1.6.0.0", "<")) {
+                    return $item->getPriceModel()->getPricesDependingOnTax($item,null,true);
+                } else {
+                    return $item->getPriceModel()->getTotalPrices($item, null, true, false);
+                }
             } else {
-                return $item->getPriceModel()->getTotalPrices($item, null, true, false);
+                if (version_compare(Mage::getVersion(), "1.6.0.0", "<")) {
+                    return $item->getPriceModel()->getPricesDependingOnTax($item,null,null);
+                } else {
+                    return $item->getPriceModel()->getTotalPrices($item, null, null, false);
+                }
             }
-        } else {
-            if (version_compare(Mage::getVersion(), "1.6.0.0", "<")) {
-                return $item->getPriceModel()->getPricesDependingOnTax($item,null,null);
-            } else {
-                return $item->getPriceModel()->getTotalPrices($item, null, null, false);
-            }
+        } catch(Exception $e) {
+            Mage::helper('klevu_search')->log(Zend_Log::WARN, sprintf("Unable to get get group price for product id %s",$product->getId()));
         }
+    }
+    
+    
+    
+    /**
+     Get Original price for group product.
+     *
+     * @param object $product.
+     *
+     * @return
+     */    
+    public function getGroupProductOriginalPrice($product,$store){
+        try {
+            $groupProductIds = $product->getTypeInstance()->getChildrenIds($product->getId());
+            $config = Mage::helper('klevu_search/config');
+            $groupPrices = array();
+            foreach ($groupProductIds as $ids) {
+                foreach ($ids as $id) {
+                    $groupProduct = Mage::getModel('catalog/product')->load($id);
+                    if($config->isTaxEnabled($store->getId())) {
+                        $groupPrices[] = Mage::helper("tax")->getPrice($groupProduct, $groupProduct->getPrice(), true, null, null, null, $store,false);
+                    } else {
+                        $groupPrices[] = $groupProduct->getPrice();
+                    }
+                }
+            }
+            asort($groupPrices);
+            $product->setPrice(array_shift($groupPrices));
+        } catch(Exception $e) {
+            Mage::helper('klevu_search')->log(Zend_Log::WARN, sprintf("Unable to get original group price for product id %s",$product->getId()));
+        }            
+    }
+    
+    
+    /**
+     * Get the is active attribute id
+     *
+     * @return string
+     */
+    public function getIsActiveAttributeId(){
+        $entity_type = Mage::getSingleton("eav/entity_type")->loadByCode("catalog_category");
+        $entity_typeid = $entity_type->getId();
+        $attributecollection = Mage::getModel("eav/entity_attribute")->getCollection()->addFieldToFilter("entity_type_id", $entity_typeid)->addFieldToFilter("attribute_code", "is_active");
+        $attribute = $attributecollection->getFirstItem();
+        return $attribute->getAttributeId();
+    }
+    
+    /**
+     * Get the is visibility attribute id
+     *
+     * @return string
+     */
+    public function getVisibilityAttributeId(){
+        $entity_type = Mage::getSingleton("eav/entity_type")->loadByCode("catalog_product");
+        $entity_typeid = $entity_type->getId();
+        $attributecollection = Mage::getModel("eav/entity_attribute")->getCollection()->addFieldToFilter("entity_type_id", $entity_typeid)->addFieldToFilter("attribute_code", "visibility");
+        $attribute = $attributecollection->getFirstItem();
+        return $attribute->getAttributeId();
     }
     
     public function getIp() {

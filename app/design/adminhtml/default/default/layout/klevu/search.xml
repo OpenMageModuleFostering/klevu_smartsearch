@@ -4,13 +4,13 @@
     <default>
         <reference name="head">
             <action method="addItem"><type>skin_css</type><name>klevu/search/notifications.css</name></action>
+            <action method="addItem"><type>skin_css</type><name>klevu/search/klevumagestyle.css</name></action>
         </reference>
         <reference name="notifications">
             <block type="klevu_search/adminhtml_notifications" name="klevu_notifications"
                    template="klevu/search/notifications.phtml"/>
         </reference>
     </default>
-
     <adminhtml_catalog_product_index>
         <reference name="products_list">
             <action method="addButton" ifconfig="klevu_search/product_sync/enabled">
@@ -35,6 +35,14 @@
             <block type="core/messages" name="messages" as="messages" />
         </block>
     </adminhtml_klevu_search_wizard_configure_user>
+    
+    <adminhtml_klevu_search_wizard_configure_userplan>
+        <remove name="root"/>
+        <block type="klevu_search/adminhtml_wizard_configure_userplan" name="configure_userplan"
+               template="klevu/search/wizard/configure/userplan.phtml" output="toHtml">
+            <block type="core/messages" name="messages" as="messages" />
+        </block>
+    </adminhtml_klevu_search_wizard_configure_userplan>
 
     <adminhtml_klevu_search_wizard_configure_store>
         <remove name="root" />

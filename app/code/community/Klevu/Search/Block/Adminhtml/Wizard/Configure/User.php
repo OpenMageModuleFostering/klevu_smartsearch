@@ -19,4 +19,7 @@ class Klevu_Search_Block_Adminhtml_Wizard_Configure_User extends Mage_Adminhtml_
     protected function getStoreUrl() {
         return $this->getBaseUrl();
     }
+    
+
+    
 }
