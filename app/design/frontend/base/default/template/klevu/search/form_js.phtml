@@ -1,0 +1,55 @@
+<?php /** @var Mage_Core_Block_Template $this */ ?>
+<?php $config = Mage::helper('klevu_search/config'); ?>
+<?php $helper = Mage::helper('klevu_search'); ?>
+<?php if ($config->isExtensionConfigured()): ?>
+<script type="text/javascript">
+    <?php 
+    if ($config->isLandingEnabled()==0){ ?>
+    (function () {
+        // Remove Magento event observers from the search box
+        // No Redirection of landing page
+        var search_input = $('search');
+        search_input.stopObserving('click');
+        search_input.stopObserving('keydown');
+        search_input.form.stopObserving('submit');
+        search_input.form.observe('submit', function (e) {
+            Event.stop(e);
+            klevu_autoSuggest($('search').value, e);
+            return false;
+        });
+    })(); 
+    <?php } else if($config->isLandingEnabled()==2) { ?>
+    (function () {
+        // Remove Magento event observers from the search box
+        // Redirect to klevu js page
+        var search_input = $('search');
+        search_input.stopObserving('click');
+        search_input.stopObserving('keydown');
+        search_input.form.observe('submit', function (e) {
+            Event.stop(e);
+            document.location='<?php echo Mage::getBaseUrl(); ?>' + "search-result?q="+$('search').value;
+            return false;
+        });
+        
+    })();
+     var klevu_showQuickSearchOnEnter=false;
+    <?php } else if($config->isLandingEnabled()==1) { ?>
+    (function () {
+        // Remove Magento event observers from the search box
+        // default magetno layout landing page 
+        var search_input = $('search');
+        search_input.stopObserving('click');
+        search_input.stopObserving('keydown');
+    })();
+     var klevu_showQuickSearchOnEnter=false;
+    <?php } ?>
+    // call store js
+    var klevu_apiKey = '<?php echo $config->getJsApiKey() ?>',
+        searchTextBoxName = 'search',
+        klevu_lang = '<?php echo $helper->getStoreLanguage() ?>',
+        klevu_result_top_margin = '',
+        klevu_result_left_margin = '';
+    (function () { var ws = document.createElement('script'),kl_protocol =("https:"===document.location.protocol?"https://":"http://"); ws.type = 'text/javascript'; ws.async = true; ws.src = kl_protocol+'<?php echo $config->getJsUrl() ?>/klevu-js-v1/js/klevu-webstore.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s); })();
+</script>
+
+<?php endif; ?>

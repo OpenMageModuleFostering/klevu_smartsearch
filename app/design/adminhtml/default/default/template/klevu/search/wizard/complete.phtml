@@ -1,0 +1,17 @@
+<?php /** @var Mage_Core_Block_Template $this */ ?>
+<div class="content-header">
+    <h3>Complete</h3>
+</div>
+<?php echo $this->getChildHtml('messages') ?>
+<p><?php echo $this->__("You have completed Klevu Search Configuration Wizard.") ?></p>
+<p><?php echo $this->__("Please click the \"Finish and Sync\" button below to synchronise your products to Klevu. Afterwards, the products will be automatically resynchronised periodically as well as when any information changes.") ?></p>
+<p><?php echo $this->__("Klevu Search will be automatically enabled on frontend after the first synchronisation completes. Afterwards, you can manually control that using the \"Enable on Frontend\" flag on the System Configuration page.") ?></p>
+<p class="warning"><b><?php echo $this->__("Warning") ?>:</b> <?php echo $this->__("Product synchronisation takes time. Please do not close or refresh the page after clicking the button until the page finishes loading.") ?></p>
+<div class="button-set">
+    <button id="sync-button"><span><?php echo $this->__("Finish and Sync") ?></span></button>
+</div>
+<script type="text/javascript">
+    $("sync-button").observe("click", function (e) {
+        window.location = "<?php echo $this->getUrl("adminhtml/klevu_search/manual_sync") ?>";
+    });
+</script>

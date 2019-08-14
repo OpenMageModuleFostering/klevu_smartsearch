@@ -1,0 +1,49 @@
+<?php /** @var Klevu_Search_Block_Adminhtml_Wizard_Configure_Store $this */ ?>
+<?php $store = $this->getStore() ?>
+<div class="content-header">
+    <h3>Configure Store</h3>
+</div>
+<?php echo $this->getChildHtml('messages') ?>
+<form id="klevu_search_wizard_configure_store_form" action="<?php echo $this->getFormActionUrl() ?>" method="POST">
+    <input type="hidden" name="form_key" value="<?php echo $this->getFormKey() ?>" />
+    <p><?php echo $this->__("Select a Magento store you want to configure Klevu search for.") ?></p>
+    <fieldset class="fieldset">
+        <table cellspacing="0" class="form-list">
+            <tbody>
+                <tr>
+                    <td class="label"><label for="store"><?php echo $this->__("Magento store:") ?></label></td>
+                    <td class="value">
+                        <select name="store">
+                            <option value=""></option>
+                            <?php $data = $this->getStoreSelectData() ?>
+                            <?php foreach ($data as $website => $groups): ?>
+                                <optgroup label="<?php echo $this->escapeHtml($website) ?>"></optgroup>
+                                <?php foreach ($groups as $group => $stores): ?>
+                                    <optgroup label="&nbsp;&nbsp;<?php echo $this->escapeHtml($group) ?>">
+                                        <?php foreach ($stores as $store): ?>
+                                            <?php /** @var Mage_Core_Model_Store $store */ ?>
+                                            <option value="<?php echo $store->getCode() ?>">&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $this->escapeHtml($store->getName()) ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
+                                <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="label"><label for="tax_enable"><?php echo $this->__("Want to include tax in price:") ?></label></td>
+                    <td class="value">
+                        <select name="tax_enable" id="tax_enable">
+                            <option value="0" selected="selected"><?php echo $this->__("No") ?></option>
+                            <option value="1"><?php echo $this->__("Yes") ?></option>
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </fieldset>
+    <div class="button-set">
+        <button type="submit"><span><?php echo $this->__("Continue") ?></span></button>
+    </div>
+</form>

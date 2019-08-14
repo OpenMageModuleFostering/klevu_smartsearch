@@ -1,0 +1,342 @@
+<?xml version="1.0"?>
+<config>
+    <sections>
+        <klevu_search translate="label" module="klevu_search">
+            <label>Klevu Search</label>
+            <tab>catalog</tab>
+            <sort_order>50</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <information translate="label">
+                    <label>Information</label>
+                    <sort_order>1</sort_order>
+                    <expanded>1</expanded>
+                    <frontend_model>klevu_search/adminhtml_form_information</frontend_model>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                </information>
+                <general translate="label">
+                    <label>General Settings</label>
+                    <sort_order>100</sort_order>
+                    <expanded>1</expanded>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label">
+                            <label>Enable on Frontend</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>100</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <js_api_key translate="label comment">
+                            <label>JS API Key</label>
+                            <comment><![CDATA[This API key is used for searches in the frontend.]]></comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>121</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </js_api_key>
+                        <rest_api_key translate="label comment">
+                            <label>REST API Key</label>
+                            <comment><![CDATA[This API key is used for syncing product information in the backend.]]></comment>
+                            <sort_order>122</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </rest_api_key>
+                        <wizard translate="button_label">
+                            <label></label>
+                            <frontend_model>klevu_search/adminhtml_wizard_config_button</frontend_model>
+                            <sort_order>130</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </wizard>
+                        <hostname translate="label comment">
+                            <label>Hostname</label>
+                            <comment><![CDATA[This Hostname is used for sending API requests to Klevu]]></comment>
+                            <sort_order>132</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </hostname>
+                        <rest_hostname translate="label comment">
+                            <label>Product Synchronization URL</label>
+                            <comment><![CDATA[This Hostname is used for sending product synchronization API requests to Klevu]]></comment>
+                            <sort_order>132</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </rest_hostname>
+                        <cloud_search_url translate="label comment">
+                            <label>Cloud Search URL</label>
+                            <comment><![CDATA[The Cloud Search URL is used for sending search API requests to Klevu]]></comment>
+                            <sort_order>132</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </cloud_search_url>
+                        <analytics_url translate="label comment">
+                            <label>Analytics URL</label>
+                            <comment><![CDATA[The Analytics URL is used when reporting search terms and click to Klevu]]></comment>
+                            <sort_order>132</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </analytics_url>
+                        <js_url translate="label comment">
+                            <label>JS URL</label>
+                            <comment><![CDATA[The JS URL is used for getting Klevu's Javascript file]]></comment>
+                            <sort_order>132</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </js_url>
+
+                    </fields>
+                </general>
+                <searchlanding translate="label">
+                    <label>Search Result Page Settings</label>
+                    <sort_order>101</sort_order>
+                    <expanded>1</expanded>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <landenabled translate="label">
+                            <label>Search Result Page</label>
+                            <comment><![CDATA[** "Preserves Your Theme Layout" option preserves layout of your theme. 
+                            ]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_landingoptions</source_model>
+                            <sort_order>100</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </landenabled>
+                    </fields>
+                </searchlanding>
+                <product_sync translate="label">
+                    <label>Product Sync Settings</label>
+                    <sort_order>200</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label comment">
+                            <label>Enable Product Sync</label>
+                            <comment><![CDATA[Enable Product Sync]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_yesnoforced</source_model>
+                            <sort_order>100</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <frequency translate="label">
+                            <label>Frequency</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_frequency</source_model>
+                            <sort_order>200</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </frequency>
+                        <last_run translate="label">
+                            <label>Last Run</label>
+                            <frontend_model>klevu_search/adminhtml_form_field_store_level_label</frontend_model>
+                            <sort_order>300</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </last_run>
+                        <sync_button>
+                            <label></label>
+                            <frontend_model>klevu_search/adminhtml_form_field_sync_button</frontend_model>
+                            <sort_order>400</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </sync_button>
+                    </fields>
+                </product_sync>
+                <attributes translate="label">
+                    <label>Product Attribute Mappings</label>
+                    <sort_order>300</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <additional translate="label comment">
+                            <label>Additional Attributes</label>
+                            <comment><![CDATA[Here you can set optional product attributes sent to Klevu by mapping them to your Magento attributes. If you specify multiple mappings for the same Klevu attribute, only the first mapping found on the product sent will be used.]]></comment>
+                            <frontend_model>klevu_search/adminhtml_form_field_attribute_mappings</frontend_model>
+                            <backend_model>adminhtml/system_config_backend_serialized_array</backend_model>
+                            <sort_order>300</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </additional>
+                        <automatic translate="label comment">
+                            <label>Automatic Attribute Mappings</label>
+                            <comment><![CDATA[These product attributes are automatically mapped and synced to Klevu. The attributes configured as to be used in the search results layered navigation are mapped with the "Other" attribute above.]]></comment>
+                            <frontend_model>klevu_search/adminhtml_form_field_automatic_attribute_mappings</frontend_model>
+                            <backend_model>adminhtml/system_config_backend_serialized_array</backend_model>
+                            <sort_order>400</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </automatic>
+                        <boosting translate="label comment">
+                            <label>Boosting Attribute</label>
+                            <comment><![CDATA[Select the attribute you wish to use as the Boosting attribute in Klevu. The Boosting attribute is a decimal or integer product attribute which allows you to manually boost certain products. All products have a default score of 1, to promote a product simply give the product a score higher than 1, to demote give a score lower than 1 (i.e. 0.1)]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_boosting_attribute</source_model>
+                            <sort_order>500</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </boosting>
+                        <other translate="label comment">
+                            <label>Other Attributes To Index</label>
+                            <comment><![CDATA[Select all other attributes you would like Klevu to index and use to improve search results.</br>Please make sure to resynchronize products by clicking on the "Sync All Products for This Store" under the "Product Sync Settings".]]></comment>
+                            <frontend_type>multiselect</frontend_type>
+                            <source_model>klevu_search/system_config_source_product_attributes</source_model>
+                            <can_be_empty>1</can_be_empty>
+                            <sort_order>600</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </other>
+                    </fields>
+                </attributes>
+                <order_sync translate="label">
+                    <label>Order Sync Settings</label>
+                    <sort_order>400</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_default>1</show_in_default>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label comment">
+                            <label>Enable Order Sync</label>
+                            <comment><![CDATA[Enable Order Sync]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_yesnoforced</source_model>
+                            <sort_order>100</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <frequency translate="label">
+                            <label>Frequency</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_frequency</source_model>
+                            <sort_order>200</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </frequency>
+                        <last_run translate="label">
+                            <label>Last Run</label>
+                            <frontend_type>label</frontend_type>
+                            <sort_order>300</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </last_run>
+                    </fields>
+                </order_sync>
+                <tax_setting translate="label">
+                    <label>Tax Settings</label>
+                    <sort_order>400</sort_order>
+                    <show_in_default>0</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label comment">
+                            <label>Include Tax in Price</label>
+                            <comment><![CDATA[Please make sure to resynchronize products by clicking on the "Sync All Products for This Store" under the "Product Sync Settings".]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>100</sort_order>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        
+                    </fields>
+                </tax_setting>
+                <developer translate="label">
+                    <label>Developer Settings</label>
+                    <sort_order>900</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <force_log translate="label comment">
+                            <label>Force Logging</label>
+                            <comment><![CDATA[Use this setting to override default Magento log settings and enable logging. Log messages are saved in Klevu_Search.log]]></comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>300</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </force_log>
+                        <log_level translate="label">
+                            <label>Log level</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>klevu_search/system_config_source_log_level</source_model>
+                            <backend_model>klevu_search/config_log_level</backend_model>
+                            <sort_order>310</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </log_level>
+                        <sendlog translate="label">
+                            <label>Send Log</label>
+                            <comment><![CDATA[When you click on the "Send Log" Button above, the following information is submitted to the Klevu team: your magento and php version numbers; status of your product indices and the last few lines of Klevu_Search.log file.]]></comment>
+                            <frontend_type>button</frontend_type>
+                            <frontend_model>klevu_search/adminhtml_form_field_image_log</frontend_model>
+                            <sort_order>311</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </sendlog>
+                    </fields>
+                </developer>
+                <image translate="label">
+                    <label>Generate Thumbnail Image</label>
+                        <sort_order>901</sort_order>
+                        <expanded>1</expanded>
+                        <show_in_default>1</show_in_default>
+                        <show_in_website>0</show_in_website>
+                        <show_in_store>0</show_in_store>
+                        <fields>
+                            <image_thumb translate="label">
+                            <label>Product Thumbnails</label>
+                            <comment><![CDATA[Click here to create thumbnails for all your product images. Once the process
+has finnished, please synchronize all your products again (see Product
+Synchronization Settings). This is to make sure Klevu Search uses the newly
+created thumbnails instead of the original product images.]]></comment>
+                            <frontend_type>button</frontend_type>
+                            <frontend_model>klevu_search/adminhtml_form_field_image_button</frontend_model>
+                            <sort_order>310</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            </image_thumb>
+                        </fields>
+                </image>
+            </groups>
+        </klevu_search>
+    </sections>
+</config>
