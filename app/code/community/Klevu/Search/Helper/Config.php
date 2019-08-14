@@ -5,6 +5,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_EXTENSION_ENABLED = "klevu_search/general/enabled";
     const XML_PATH_TEST_MODE         = "klevu_search/general/test_mode";
     const XML_PATH_TAX_ENABLED       = "klevu_search/tax_setting/enabled";
+    const XML_PATH_SECUREURL_ENABLED = "klevu_search/secureurl_setting/enabled";
     const XML_PATH_LANDING_ENABLED   = "klevu_search/searchlanding/landenabled";
     const XML_PATH_JS_API_KEY        = "klevu_search/general/js_api_key";
     const XML_PATH_REST_API_KEY      = "klevu_search/general/rest_api_key";
@@ -73,6 +74,16 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     }
     
     /**
+     * Check if the Secure url is enabled in the system configuration for the current store.
+     *
+     * @param $store_id
+     *
+     * @return bool
+     */
+    public function isSecureUrlEnabled($store_id = null) {
+        return Mage::getStoreConfigFlag(static::XML_PATH_SECUREURL_ENABLED, $store_id);
+    }
+    /**
      * Check if the Landing is enabled in the system configuration for the current store.
      *
      * @param $store_id
@@ -120,6 +131,21 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     
         $flag = ($flag) ? 1 : 0;
         $this->setStoreConfig(static::XML_PATH_TAX_ENABLED, $flag, $store);
+        return $this;
+    }
+    
+    /**
+     * Set the Secure Url mode in System Configuration for the given store.
+     *
+     * @param      $flag
+     * @param null $store Store to use. If not specified, uses the current store.
+     *
+     * @return $this
+     */
+    public function setSecureUrlEnabledFlag($flag, $store = null) {
+    
+        $flag = ($flag) ? 1 : 0;
+        $this->setStoreConfig(static::XML_PATH_SECUREURL_ENABLED, $flag, $store);
         return $this;
     }
 

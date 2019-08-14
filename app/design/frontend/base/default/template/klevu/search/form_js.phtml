@@ -2,7 +2,7 @@
 <?php $config = Mage::helper('klevu_search/config'); ?>
 <?php $helper = Mage::helper('klevu_search'); ?>
 <?php if ($config->isExtensionConfigured()): 
-if(Mage::app()->getStore()->isFrontUrlSecure()) {
+if($config->isSecureUrlEnabled(Mage::app()->getStore()->getStoreId())) {
     $url = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK,true);
 } else { 
     $url = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK);

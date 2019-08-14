@@ -61,8 +61,9 @@
 <input id="totalResultsFound" type="hidden" name="totalResultsFound" value="0" /> 
 <input id="searchedKeyword" type="hidden" name="searchedKeyword" value="" /> 
 <input id="totalPages" type="hidden" name="totalPages" value="0" />
+<?php $config = Mage::helper('klevu_search/config'); ?>
 <?php 
-if(Mage::app()->getStore()->isFrontUrlSecure()){
+if($config->isSecureUrlEnabled(Mage::app()->getStore()->getStoreId())) {
     $src = "https://".$config->getJsUrl();
 } else {
     $src = "http://".$config->getJsUrl();

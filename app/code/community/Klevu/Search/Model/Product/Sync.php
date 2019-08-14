@@ -781,7 +781,8 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         $stock_data = $this->getStockData($product_ids);
 
         $attribute_map = $this->getAttributeMap();
-        if($this->getStore()->isFrontUrlSecure()) {
+        $config = Mage::helper('klevu_search/config');
+        if($config->isSecureUrlEnabled($this->getStore()->getId())) {
             $base_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK,true);
             $media_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA,true);
           
@@ -860,7 +861,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 break;
                             } else if ($parent && $parent->getData($attribute) && $parent->getData($attribute) != "no_selection") {
                                 $product[$key] = $parent->getData($attribute);
-                               
                                 break;
                             }
                         }
@@ -870,7 +870,8 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             Mage::getModel('klevu_search/product_sync')->thumbImage($product[$key]);
                             $imageResized = Mage::getBaseDir('media').DS."klevu_images".$product[$key];
                                 if (file_exists($imageResized)) {
-                                    if($this->getStore()->isFrontUrlSecure()) {
+                                    $config = Mage::helper('klevu_search/config');
+                                    if($config->isSecureUrlEnabled($this->getStore()->getId())) {
                                         $product[$key] =  $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA,true)."klevu_images".$product[$key];
                                     } else {
                                         $product[$key] =  $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA)."klevu_images".$product[$key];

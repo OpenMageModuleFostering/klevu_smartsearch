@@ -137,6 +137,7 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
 
 
         $config->setTaxEnabledFlag($request->getPost("tax_enable"), $store);
+        $config->setSecureUrlEnabledFlag($request->getPost("secureurl_setting"), $store);
 
         // Clear Product Sync and Order Sync data for the newly configured store
         Mage::getModel("klevu_search/product_sync")->clearAllProducts($store);
