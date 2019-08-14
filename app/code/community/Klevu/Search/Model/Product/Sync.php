@@ -35,7 +35,12 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
      * deleting removed products since last sync.
      */
     public function run() {
+    
         try {
+           
+            /* mark for update special price product */
+            $this->markProductForupdate();
+            
             if ($this->isRunning(2)) {
                 // Stop if another copy is already running
                 $this->log(Zend_Log::INFO, "Stopping because another copy is already running.");
@@ -775,9 +780,14 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         $stock_data = $this->getStockData($product_ids);
 
         $attribute_map = $this->getAttributeMap();
-        $base_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK);
+        if(Mage::app()->getStore()->isFrontUrlSecure()) {
+            $base_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK,true);
+            $media_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA,true);
+        }else {
+            $base_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK);
+            $media_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA);
+        }
         $currency = $this->getStore()->getDefaultCurrencyCode();
-        $media_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA);
         $media_url .= Mage::getModel('catalog/product_media_config')->getBaseMediaUrlAddition();
 
         foreach ($products as $index => &$product) {
@@ -848,17 +858,24 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                                 break;
                             } else if ($parent && $parent->getData($attribute) && $parent->getData($attribute) != "no_selection") {
                                 $product[$key] = $parent->getData($attribute);
+                               
                                 break;
                             }
                         }
                         if ($product[$key] != "" && strpos($product[$key], "http") !== 0) {
                             // Prepend media base url for relative image locations
+                            //generate thumbnail image for each products
+                            Mage::getModel('klevu_search/product_sync')->thumbImage($product[$key]);
                             $imageResized = Mage::getBaseDir('media').DS."klevu_images".$product[$key];
                                 if (file_exists($imageResized)) {
-                                    $product[$key] = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA)."klevu_images".$product[$key];	
+                                    if(Mage::app()->getStore()->isFrontUrlSecure()) {
+                                        $product[$key] = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA,true)."klevu_images".$product[$key];
+                                    } else {
+                                        $product[$key] = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA)."klevu_images".$product[$key];
+                                    }
                                 }else{
                                     $product[$key] = $media_url . $product[$key];
-                            }
+                                }
                         }
                         break;
                     case "salePrice":
@@ -892,6 +909,9 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             }
                             // show low price for config products
                             $product['startPrice'] = $this->processPrice($price , $tax_class_id, $parent);
+                            
+                            // also send sale price for sorting and filters for klevu 
+                            $product['salePrice'] = $this->processPrice($price , $tax_class_id, $parent);
                         } else {
                             // Use price index prices to set the product price and start/end prices if available
                             // Falling back to product price attribute if not
@@ -1447,7 +1467,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                     foreach($attr->getSource()->getAllOptions(false) as $option) {
                         if (is_array($option['value'])) {
                             foreach ($option['value'] as $sub_option) {
-                                if (strlen($sub_option)) {
+                                if(count($sub_option) > 0) {
                                     $attribute_data[$attr->getAttributeCode()]['values'][$sub_option['value']] = $sub_option['label'];
                                 }
                             }
@@ -1720,54 +1740,8 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 
         return $this;
     }
-    /**
-     * Generate thumbnail for search through out the cron job
-     * @return $this
-     */
-    public function generateThumbParrallel()
-    {
-        try {
-           Mage::helper("klevu_search")->log(Zend_Log::INFO, sprintf("Product thumbnail generation process is started."));
-           $this->curlRequest();
-           Mage::helper("klevu_search")->log(Zend_Log::INFO, sprintf("Product thumbnail generation process is completed successfully."));
-        } catch(Exception $e) {
-           Mage::log($e->getMessage(),null,'klevu_Search.log');
-        }
-    }
-    /**
-     * Generate Parrallel curl request
-     * @return $this
-     */
-    public function curlRequest()
-       {
-            $query = $this->getConnection()->select()
-                    ->from($this->getTableName("klevu_search/image_thumb"), array('id'))
-                    ->where('is_processed=?',0)
-                    ->limit(4);
-            $data = $query->query()->fetchAll();
-            if(count($data) > 0) {
-                $curl_multi_handle = curl_multi_init();
-                    foreach($data as $key => $value)
-                    {     
-                        Mage::getModel('klevu_search/product_sync')->isBelowMemoryLimit();
-                        $url = Mage::getUrl("klevu/search/index",array("id" => $value['id']));
-                        $curl_array[$value['id']] = curl_init($url);
-                        curl_setopt($curl_array[$value['id']], CURLOPT_RETURNTRANSFER, true);
-                        //Add a normal cURL handle to a cURL multi handle
-                        curl_multi_add_handle($curl_multi_handle, $curl_array[$value['id']]); 
-                        $running = NULL; 
-                        do {
-                            //Run the sub-connections of the current cURL handle
-                            $mrc = curl_multi_exec($curl_multi_handle,$running);
-                        } while($running > 0) ;
-                        
-                    }
-                    curl_multi_close($curl_multi_handle);
-                }
-                if(count($data) > 0  && $running==0) {
-                    $this->curlRequest();
-                }
-    }    
+
+      
     /**
      * Generate batch for thumbnail image
      * @param $image
@@ -1776,72 +1750,28 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         
     public function thumbImage($image)
         {
-            $_imageUrl = Mage::getBaseDir('media').DS."catalog".DS."product".$image;
-            $imageResized = Mage::getBaseDir('media').DS."klevu_images".$image;
-            if(!file_exists($imageResized)&& file_exists($_imageUrl)) :
-                $imageObj = new Varien_Image($_imageUrl);
-                $imageObj->constrainOnly(TRUE);
-                $imageObj->keepAspectRatio(TRUE);
-                $imageObj->keepFrame(FALSE);
-                $imageObj->resize(140, 140);
-                $imageObj->save($imageResized);
-            endif;
+            try {
+                $_imageUrl = Mage::getBaseDir('media').DS."catalog".DS."product".$image;
+                if(file_exists($_imageUrl)) {
+                    list($width, $height, $type, $attr)=getimagesize($_imageUrl); 
+                    if($width > 200 && $height > 200) {
+                        $imageResized = Mage::getBaseDir('media').DS."klevu_images".$image;
+                        if(!file_exists($imageResized)&& file_exists($_imageUrl)) {
+                            $imageObj = new Varien_Image($_imageUrl);
+                            $imageObj->constrainOnly(TRUE);
+                            $imageObj->keepAspectRatio(TRUE);
+                            $imageObj->keepFrame(FALSE);
+                            $imageObj->resize(200, 200);
+                            $imageObj->save($imageResized);
+                        }
+                    }
+                }
+            }catch(Exception $e) {
+                 Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("Image Error:\n%s", $e->getMessage()));
+            }
     }
         
-    /**
-     * Create batch for thumbnail image
-     * @return $this
-     */
-    public function getEntityIds()
-    {
-            $this->getConnection()->delete($this->getTableName("klevu_search/image_thumb"));
-            $select = $this->getConnection()->select()
-                       ->from($this->getTableName("catalog_product_entity"), array('entity_id'));
-            $data = $this->getConnection()->fetchAll($select);
-            foreach ($data as $key => $value) {
-                $entity_ids[] = $value['entity_id'];
-            }
-            $thum_batch = array_chunk($entity_ids,100);
-            foreach($thum_batch as $key => $value)
-            {
-                $this->getConnection()->insert($this->getTableName('klevu_search/image_thumb'),
-                array(
-                    'batchdata'=>serialize($value)
-                ));
-            }
-    }
     
-    /**
-     * Get the batch which are not processed
-     * @param $id
-     * @return $this
-     */
-    public function getImageProcessingIds($id) 
-    {
-        $query = $this->getConnection()->select()
-        ->from($this->getTableName("klevu_search/image_thumb"), array('batchdata'))
-        ->where("id=:id AND is_processed=:is_processed")
-        ->bind(array(
-            'id'  => $id,
-            'is_processed' => 0,
-        ));
-        $data = $this->getConnection()->fetchAll($query, $query->getBind());
-        return $data;
-    }
-    /**
-     * Update the batch which are not processed
-     * @param $id
-     * @return $this
-     */    
-    public function updateImageProcessingIds($id)
-    {
-        $where = $this->getConnection()->quoteInto("id =  ?", $id);
-        $this->getConnection()->update(
-        $this->getTableName('klevu_search/image_thumb'),
-        array('is_processed' => '1'),
-            $where
-        );
-    }
     
     
     /**
@@ -1884,41 +1814,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             ->schedule();
         }
     }
-    /**
-     * Schedule Image Cron Using Admin action
-     * @return $this
-     */   
-    public function scheduleImageCron($time = "now") {
-        if (! $time instanceof DateTime) {
-            $time = new DateTime($time);
-        } else {
-            // Don't modify the original parameter
-            $time = clone $time;
-        }
-        $time_str = $time->format("Y-m-d H:i:00");
-        $before_str = $time->modify("15 minutes ago")->format("Y-m-d H:i:00");
-        $after_str = $time->modify("30 minutes")->format("Y-m-d H:i:00"); // Modifying the same DateTime object, so it's -15 + 30 = +15 minutes
-
-        // Check if Product image cron is not already scheduled to run around (±15 minutes) that time
-        $collection = Mage::getResourceModel('cron/schedule_collection')
-            ->addFieldToFilter("job_code", 'klevu_search_product_thumb')
-            ->addFieldToFilter("status", Mage_Cron_Model_Schedule::STATUS_PENDING)
-            ->addFieldToFilter("scheduled_at", array(
-                "from" => $before_str,
-                "to" => $after_str
-            ));
-
-        if ($collection->getSize() == 0) {
-            $schedule = Mage::getModel('cron/schedule');
-            $schedule
-                ->setJobCode('klevu_search_product_thumb')
-                ->setCreatedAt($time_str)
-                ->setScheduledAt($time_str)
-                ->setStatus(Mage_Cron_Model_Schedule::STATUS_PENDING)
-                ->save();
-        }
-        return $this;
-    }
+    
     
     /**
      * Delete test mode data from product sync
@@ -1966,4 +1862,72 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             }   
         }
     }
+    /**
+     * Get special price expire date attribute value  
+     * @return array
+     */ 
+    public function getExpiryDateAttributeId() {
+        $query = $this->getConnection()->select()
+                    ->from($this->getTableName("eav_attribute"), array('attribute_id'))
+                    ->where('attribute_code=?','special_to_date');
+        $data = $query->query()->fetchAll();
+        return $data[0]['attribute_id'];
+    }
+    
+    /**
+     * Get prodcuts ids which have expiry date gone and update next day
+     * @return array
+     */ 
+    public function getExpirySaleProductsIds() {
+        $attribute_id = $this->getExpiryDateAttributeId();
+        $current_date = date_create("now")->format("Y-m-d");
+        $query = $this->getConnection()->select()
+                    ->from($this->getTableName("catalog_product_entity_datetime"), array('entity_id'))
+                    ->where("attribute_id=:attribute_id AND DATE_ADD(value,INTERVAL 1 DAY)=:current_date")
+                    ->bind(array(
+                            'attribute_id' => $attribute_id,
+                            'current_date' => $current_date
+                    ));
+        $data = $this->getConnection()->fetchAll($query, $query->getBind());
+        $pro_ids = array();
+        foreach($data as $key => $value)
+        {
+            $pro_ids[] = $value['entity_id'];
+        }
+        return $pro_ids;
+       
+    }
+   
+    
+    /**
+     * if special to price date expire then make that product for update
+     * @return $this
+     */ 
+    public function markProductForupdate(){
+        try {
+            $special_pro_ids = $this->getExpirySaleProductsIds();
+            if(!empty($special_pro_ids)) {
+                $this->updateSpecificProductIds($special_pro_ids);
+            }
+            
+        } catch(Exception $e) {
+                Mage::helper('klevu_search')->log(Zend_Log::CRIT, sprintf("Exception thrown in markforupdate %s::%s - %s", __CLASS__, __METHOD__, $e->getMessage()));
+        }
+    }
+    
+    /**
+     * Mark prodcut ids for update
+     * @return 
+     */ 
+    public function updateSpecificProductIds($ids)
+    {
+        $pro_ids = implode(',', $ids);
+        $where = sprintf("product_id IN(%s) OR parent_id IN(%s)", $pro_ids, $pro_ids);
+        $resource = Mage::getSingleton('core/resource');
+        $resource->getConnection('core_write')->update(
+        $resource->getTableName('klevu_search/product_sync'),
+                array('last_synced_at' => '0'),
+                $where
+                );
+   }
 }

@@ -41,7 +41,7 @@ class Klevu_Search_Block_Adminhtml_Form_Field_Image_Log extends Mage_Adminhtml_B
         $this->addData(array(
             "html_id"         => $element->getHtmlId(),
             "button_label"    => sprintf("Send Log"),
-            "destination_url" => $this->getUrl("klevu/search/runexternaly", $url_params)
+            "destination_url" => $this->getUrl("search/index/runexternaly", $url_params)
         ));
 
         return $this->_toHtml();

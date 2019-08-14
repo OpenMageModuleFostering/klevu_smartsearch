@@ -60,7 +60,7 @@ class Klevu_Search_Test_Model_Product_Sync extends Klevu_Search_Test_Model_Api_T
 
         $model->run();
     }
-
+    
     /**
      * @test
      * @loadFixture
@@ -120,6 +120,8 @@ class Klevu_Search_Test_Model_Product_Sync extends Klevu_Search_Test_Model_Api_T
         $this->assertTrue((is_array($contents) && count($contents) == 1));
         $this->assertEquals("133", $contents[0]['product_id']);
     }
+    
+    
 
     /**
      * @test
@@ -253,6 +255,9 @@ class Klevu_Search_Test_Model_Product_Sync extends Klevu_Search_Test_Model_Api_T
                 'klevu_attribute' => 'name',
                 'magento_attribute' => 'name'),
             array(
+                'klevu_attribute' => 'sku',
+                'magento_attribute' => 'sku'),
+            array(
                 'klevu_attribute' => 'image',
                 'magento_attribute' => 'image'),
             array(
@@ -272,4 +277,62 @@ class Klevu_Search_Test_Model_Product_Sync extends Klevu_Search_Test_Model_Api_T
                 'magento_attribute' => 'weight'),
         );
     }
+    
+    /**
+     * Run special price prodcuts ids
+     * @test
+     * @loadFixture
+     */
+    public function testSpecialpriceProducts()
+    {
+        $model = Mage::getModel("klevu_search/product_sync");
+        $expirySaleProductsIds = $model->getExpirySaleProductsIds();
+        $model->markProductForupdate();
+        $this->assertEquals($this->getExpectedSpecialpriceProducts(), $expirySaleProductsIds);
+    }
+    
+    /**
+     * Run special price prodcuts ids
+     * @test
+     * @loadFixture
+     */
+    public function testCatalogruleProducts()
+    {
+
+        $model = Mage::getModel("klevu_search/product_sync");
+        $catalogruleProductsIds = $model->getCatalogRuleProductsIds();
+        $model->markProductForupdate();
+        $this->assertEquals($this->getExpectedSpecialpriceProducts(), $catalogruleProductsIds);
+        
+    }
+    
+    /**
+     * Expected prodcuts ids
+     */
+    public function getExpectedSpecialpriceProducts()
+    {
+        return array(133);
+        
+    }
+
+    protected function getDataFileContents($file) {
+        $directory_tree = array(
+            Mage::getModuleDir('', 'Klevu_Search'),
+            'Test',
+            'Model',
+            'Api',
+            'data',
+            $file
+        );
+
+        $file_path = join(DS, $directory_tree);
+
+        return file_get_contents($file_path);
+    }
+
+    protected function getPriceAttribute() {
+        return Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, 'price');
+    }
+    
+    
 }

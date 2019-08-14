@@ -108,7 +108,7 @@ class Klevu_Search_Test_Controller_CatalogSearch extends EcomDev_PHPUnit_Test_Ca
      * @loadFixture search_results
      */
     public function testSearchCategoryFilterIsApplied() {
-        $this->app()->getRequest()->setQuery('cat', '3');
+        $this->app()->getRequest()->setQuery('cat', '2');
         $this->mockAndDispatchSearchResults();
 
         $this->assertCount(1, $this->getAppliedFilters()); // We expect only 1 applied filter.
@@ -134,7 +134,7 @@ class Klevu_Search_Test_Controller_CatalogSearch extends EcomDev_PHPUnit_Test_Ca
      * @loadFixture search_results
      */
     public function testMultipleFiltersCanBeApplied() {
-        $this->app()->getRequest()->setQuery(array('price' => '0-49', 'cat' => '3'));
+        $this->app()->getRequest()->setQuery(array('price' => '0-49', 'cat' => '23'));
         $this->mockAndDispatchSearchResults();
 
         $this->assertCount(2, $this->getAppliedFilters()); // We expect 2 applied filters.
@@ -147,7 +147,7 @@ class Klevu_Search_Test_Controller_CatalogSearch extends EcomDev_PHPUnit_Test_Ca
      */
     public function testChangingSortOrderToPriceDesc() {
         $this->app()->getRequest()->setQuery(array('dir' => 'desc', 'order' => 'price'));
-        $this->mockAndDispatchSearchResults('shirt', 'sorted');
+        $this->mockAndDispatchSearchResults('example', 'sorted');
         $result_block = $this->getSearchResultsBlock();
         // Set the updated mock collection
         $result_block->setCollection($this->collection);
@@ -174,7 +174,7 @@ class Klevu_Search_Test_Controller_CatalogSearch extends EcomDev_PHPUnit_Test_Ca
         // Default: page size = 9, set the page to page 2, meaning we expect to see results from 10+
         $this->getRequest()->setQuery('p', '2');
         // Our response will return the 10th product, our response contains a total result size of 10.
-        $this->mockAndDispatchSearchResults('shirt', 'paged', 9);
+        $this->mockAndDispatchSearchResults('example', 'paged', 9);
 
         $result_block = $this->getSearchResultsBlock();
         $result_block->setCollection($this->collection);
@@ -236,7 +236,7 @@ class Klevu_Search_Test_Controller_CatalogSearch extends EcomDev_PHPUnit_Test_Ca
      * @return $this
      * @throws Zend_Controller_Exception
      */
-    protected function mockAndDispatchSearchResults($query = 'shirt', $response_type = 'successful', $pagination = 0) {
+    protected function mockAndDispatchSearchResults($query = 'example', $response_type = 'successful', $pagination = 0) {
         $this->mockApiAndCollection($query, $response_type, $pagination);
         // Set the search query
         $this->getRequest()->setQuery('q', $query);
@@ -245,7 +245,7 @@ class Klevu_Search_Test_Controller_CatalogSearch extends EcomDev_PHPUnit_Test_Ca
         return $this->dispatch('catalogsearch/result/index');
     }
 
-    protected function mockApiAndCollection($query = 'shirt', $response_type = 'successful', $pagination = 0) {
+    protected function mockApiAndCollection($query = 'example', $response_type = 'successful', $pagination = 0) {
         // Mock the API Action
         switch($response_type) {
             default:
@@ -266,7 +266,7 @@ class Klevu_Search_Test_Controller_CatalogSearch extends EcomDev_PHPUnit_Test_Ca
         $this->replaceApiActionByMock("klevu_search/api_action_idsearch", $response);
 
         $return_value = array(
-            'ticket' => 'some-api-key',
+            'ticket' => 'klevu-14255510895641069',
             'noOfResults' => 9,
             'term' => $query,
             'paginationStartsFrom' => $pagination,

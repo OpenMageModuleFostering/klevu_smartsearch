@@ -6,7 +6,6 @@
         var referrer, search_term, klevu_search_product_tracking;
         referrer = document.referrer;
         search_term = referrer.toQueryParams().q;
-
         if (referrer.indexOf('catalogsearch/result') > -1 && search_term) {
             klevu_search_product_tracking = <?php echo $this->getJsonTrackingData() ?>;
             klevu_search_product_tracking.klevu_term = search_term;

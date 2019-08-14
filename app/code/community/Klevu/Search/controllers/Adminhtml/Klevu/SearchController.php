@@ -46,19 +46,5 @@ class Klevu_Search_Adminhtml_Klevu_SearchController extends Mage_Adminhtml_Contr
 
         return $this->_redirectReferer("adminhtml/dashboard");
     }
-    /**
-     * Get the product ids for thumbnails and schedual the cron. 
-     */
-    public function generate_thumbnailAction() {
-        try {
-                Mage::getModel('klevu_search/product_sync')->getEntityIds();
-                Mage::getModel('klevu_search/product_sync')->scheduleImageCron();
-                Mage::getSingleton('adminhtml/session')->addSuccess($this->__("Klevu thumbnails generation task scheduled to be run on the next cron run."));
-        }
-        catch (Exception $e) {
-                Mage::logException($e);
-                Mage::getSingleton('adminhtml/session')->addError($this->__("Unable to generate product images. Please try later."));
-        }
-        return $this->_redirectReferer("adminhtml/dashboard");
-    }
+    
 }

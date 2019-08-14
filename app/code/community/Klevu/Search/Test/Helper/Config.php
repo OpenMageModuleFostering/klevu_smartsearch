@@ -13,11 +13,8 @@ class Klevu_Search_Test_Helper_Config extends EcomDev_PHPUnit_Test_Case {
 
     protected function tearDown() {
         $this->getConfig()->deleteConfig("klevu_search/general/enabled");
-        $this->getConfig()->deleteConfig("klevu_search/general/test_mode");
         $this->getConfig()->deleteConfig("klevu_search/general/js_api_key");
         $this->getConfig()->deleteConfig("klevu_search/general/rest_api_key");
-        $this->getConfig()->deleteConfig("klevu_search/general/test_js_api_key");
-        $this->getConfig()->deleteConfig("klevu_search/general/test_rest_api_key");
         $this->getConfig()->deleteConfig("klevu_search/product_sync/enabled");
         $this->getConfig()->deleteConfig("klevu_search/product_sync/frequency");
         $this->getConfig()->deleteConfig("klevu_search/attributes/additional");
@@ -45,50 +42,12 @@ class Klevu_Search_Test_Helper_Config extends EcomDev_PHPUnit_Test_Case {
         $this->assertEquals(false, $this->helper->isExtensionEnabled());
     }
 
-    /**
-     * @test
-     */
-    public function testGetTestModeEnabledFlag() {
-        $this->assertEquals(false, $this->helper->getTestModeEnabledFlag(),
-            "Failed asserting that Test Mode flag is disabled by default."
-        );
-
-        $this->getConfig()
-            ->saveConfig("klevu_search/general/test_mode", 1)
-            ->cleanCache();
-
-        $this->clearConfigCache();
-
-        $this->assertEquals(true, $this->helper->getTestModeEnabledFlag(),
-            "Failed asserting that Test Mode flag returns true when Test Mode is enabled in the config."
-        );
-    }
-
-    /**
-     * @test
-     * @dataProvider dataProvider
-     */
-    public function testIsTestModeEnabled($test_mode, $is_production_domain, $result) {
-        $this->getConfig()
-            ->saveConfig("klevu_search/general/test_mode", $test_mode)
-            ->cleanCache();
-
-        $this->clearConfigCache();
-
-        $this->mockIsProductionDomain($is_production_domain);
-
-        $this->assertEquals($result, $this->helper->isTestModeEnabled());
-    }
-
+    
     /**
      * @test
      */
     public function testGetJsApiKeyProduction() {
-        $api_key = "test-js-api-key";
-
-        $this->mockIsProductionDomain(true);
-
-        $this->assertEquals(null, $this->helper->getJsApiKey());
+        $api_key = 'klevu-14255510895641069';
 
         $this->getConfig()
             ->saveConfig("klevu_search/general/js_api_key", $api_key)
@@ -98,35 +57,12 @@ class Klevu_Search_Test_Helper_Config extends EcomDev_PHPUnit_Test_Case {
 
         $this->assertEquals($api_key, $this->helper->getJsApiKey());
     }
-
-    /**
-     * @test
-     */
-    public function testGetJsApiKeyStaging() {
-        $api_key = "test-js-api-key";
-
-        $this->mockIsProductionDomain(false);
-
-        $this->assertEquals(null, $this->helper->getJsApiKey());
-
-        $this->getConfig()
-            ->saveConfig("klevu_search/general/test_js_api_key", $api_key)
-            ->cleanCache();
-
-        $this->clearConfigCache();
-
-        $this->assertEquals($api_key, $this->helper->getJsApiKey());
-    }
-
+   
     /**
      * @test
      */
     public function testGetRestApiKeyProduction() {
-        $api_key = "test-rest-api-key";
-
-        $this->mockIsProductionDomain(true);
-
-        $this->assertEquals(null, $this->helper->getRestApiKey());
+        $api_key = 'a2xldnUtMTQyNTU1MTA4OTU2NDEwNjk6S2xldnUtZmo4NzQ3cHUxMg==';
 
         $this->getConfig()
             ->saveConfig("klevu_search/general/rest_api_key", $api_key)
@@ -136,31 +72,12 @@ class Klevu_Search_Test_Helper_Config extends EcomDev_PHPUnit_Test_Case {
 
         $this->assertEquals($api_key, $this->helper->getRestApiKey());
     }
-
-    /**
-     * @test
-     */
-    public function testGetRestApiKeyStaging() {
-        $api_key = "test-rest-api-key";
-
-        $this->mockIsProductionDomain(false);
-
-        $this->assertEquals(null, $this->helper->getRestApiKey());
-
-        $this->getConfig()
-            ->saveConfig("klevu_search/general/test_rest_api_key", $api_key)
-            ->cleanCache();
-
-        $this->clearConfigCache();
-
-        $this->assertEquals($api_key, $this->helper->getRestApiKey());
-    }
-
+    
     /**
      * @test
      */
     public function testGetProductSyncEnabledFlagDefault() {
-        $this->assertEquals(2, $this->helper->getProductSyncEnabledFlag());
+        $this->assertEquals(1, $this->helper->getProductSyncEnabledFlag());
     }
 
     /**
@@ -168,20 +85,15 @@ class Klevu_Search_Test_Helper_Config extends EcomDev_PHPUnit_Test_Case {
      * @loadFixture
      */
     public function testGetProductSyncEnabledFlag() {
-        $this->assertEquals(2, $this->helper->getProductSyncEnabledFlag());
+        $this->assertEquals(1, $this->helper->getProductSyncEnabledFlag());
     }
 
     /**
      * @test
      * @dataProvider dataProvider
      */
-    public function testIsProductSyncEnabled($is_production_domain, $config_flag, $result) {
-        $data_helper = $this->getHelperMock('klevu_search', array("isProductionDomain"));
-        $data_helper
-            ->expects($this->once())
-            ->method("isProductionDomain")
-            ->will($this->returnValue($is_production_domain));
-        $this->replaceByMock("helper", "klevu_search", $data_helper);
+    public function testIsProductSyncEnabled($config_flag, $result) {
+        
 
         $this->clearConfigCache();
 
@@ -238,23 +150,14 @@ class Klevu_Search_Test_Helper_Config extends EcomDev_PHPUnit_Test_Case {
      * @loadFixture
      */
     public function testGetOrderSyncEnabledFlag() {
-        $this->assertEquals(2, $this->helper->getOrderSyncEnabledFlag());
+        $this->assertEquals(1, $this->helper->getOrderSyncEnabledFlag());
     }
 
     /**
      * @test
      * @dataProvider dataProvider
      */
-    public function testIsOrderSyncEnabled($is_production_domain, $config_flag, $result) {
-        $data_helper = $this->getHelperMock('klevu_search', array("isProductionDomain"));
-        $data_helper
-            ->expects($this->once())
-            ->method("isProductionDomain")
-            ->will($this->returnValue($is_production_domain));
-        $this->replaceByMock("helper", "klevu_search", $data_helper);
-
-        $this->clearConfigCache();
-
+    public function testIsOrderSyncEnabled($config_flag, $result) {
         $this->getConfig()
             ->saveConfig("klevu_search/order_sync/enabled", $config_flag)
             ->cleanCache();
@@ -282,30 +185,30 @@ class Klevu_Search_Test_Helper_Config extends EcomDev_PHPUnit_Test_Case {
      */
     public function testIsLoggingForced() {
         // Test the default value
-        $this->assertEquals(false, $this->helper->isLoggingForced());
+        $this->assertEquals(true, $this->helper->isLoggingForced());
 
         $this->clearConfigCache();
 
         // Test a set value
         $this->getConfig()
-            ->saveConfig('klevu_search/developer/force_log', true)
+            ->saveConfig('klevu_search/developer/force_log', false)
             ->cleanCache();
 
-        $this->assertEquals(true, $this->helper->isLoggingForced());
+        $this->assertEquals(false, $this->helper->isLoggingForced());
     }
 
     public function testGetLogLevel() {
         // Test the default value
-        $this->assertEquals(Zend_Log::WARN, $this->helper->getLogLevel(), "getLogLevel() returned an incorrect default value.");
+        $this->assertEquals(Zend_Log::INFO, $this->helper->getLogLevel(), "getLogLevel() returned an incorrect default value.");
 
         $this->clearConfigCache();
 
         // Test a set value
         $this->getConfig()
-            ->saveConfig('klevu_search/developer/log_level', Zend_Log::INFO)
+            ->saveConfig('klevu_search/developer/log_level', Zend_Log::WARN)
             ->cleanCache();
 
-        $this->assertEquals(Zend_Log::INFO, $this->helper->getLogLevel(), "getLogLevel() failed to return the value set.");
+        $this->assertEquals(Zend_Log::WARN, $this->helper->getLogLevel(), "getLogLevel() failed to return the value set.");
     }
 
     /**

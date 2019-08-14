@@ -125,13 +125,31 @@ class Klevu_Search_Model_Observer extends Varien_Object {
             }
         }
     }
-    
-    public function removeTest()
-    {
+
+    /**
+     * Call remove testmode
+     */
+    public function removeTest() {
         Mage::getModel("klevu_search/product_sync")->removeTestMode();    
         
     }
     
+    /**
+     * make prodcuts for update when category change products
+     */
+    public function setCategoryProductsToSync(Varien_Event_Observer $observer) {
+        try {
+            $updatedProductsIds = $observer->getData('product_ids');
+            if (count($updatedProductsIds) == 0) {
+                return;
+            }
+            Mage::getModel("klevu_search/product_sync")->updateSpecificProductIds($updatedProductsIds);
+
+        } catch (Exception $e) {
+            Mage::helper('klevu_search')->log(Zend_Log::CRIT, sprintf("Exception thrown in %s::%s - %s", __CLASS__, __METHOD__, $e->getMessage()));
+        }
+        
+    }
     
  
 }

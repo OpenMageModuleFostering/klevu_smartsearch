@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Klevu_Search>
-            <version>1.1.15</version>
+            <version>1.1.16</version>
         </Klevu_Search>
     </modules>
     <global>
@@ -33,11 +33,9 @@
                     <order_sync>
                         <table>klevu_order_sync</table>
                     </order_sync>
-                    <image_thumb>
-                        <table>klevu_image_thumb</table>
-                    </image_thumb>
                 </entities>
             </klevu_search_resource>
+            
         </models>
         <resources>
             <klevu_search_setup>
@@ -165,6 +163,15 @@
                     </klevu_search_product_sync>
                 </observers>
             </catalog_product_attribute_update_before>
+            <catalog_category_change_products>
+                <observers>
+                    <klevu_search_categroy_product_sync>
+                        <type>singleton</type>
+                        <class>klevu_search/observer</class>
+                        <method>setCategoryProductsToSync</method>
+                    </klevu_search_categroy_product_sync>
+                </observers>
+            </catalog_category_change_products>
         </events>
     </global>
     <admin>
@@ -188,22 +195,22 @@
         </layout>
     </adminhtml>
     <frontend>
-        <layout>
-            <updates>
-                <klevu_search>
-                    <file>klevu/search.xml</file>
-                </klevu_search>
-            </updates>
-        </layout>
-        <routers>
-            <klevu_search>
+       <routers>
+            <search>
                 <use>standard</use>
                 <args>
-                    <module>Klevu_Search</module>
-                    <frontName>klevu</frontName>
+                <module>Klevu_Search</module>
+                <frontName>search</frontName>
                 </args>
-            </klevu_search>
+            </search>
         </routers>
+		<layout>
+		  <updates>
+			<search>
+			  <file>klevu/search.xml</file>
+			</search>
+		  </updates>
+		</layout>
     </frontend>
     <crontab>
         <jobs>
@@ -228,14 +235,6 @@
                     <model>klevu_search/order_sync::run</model>
                 </run>
             </klevu_search_order_sync>
-            <klevu_search_product_thumb>
-                <schedule>
-                    <config_path>klevu_search/product_sync/frequency</config_path>
-                </schedule>
-                <run>
-                    <model>klevu_search/product_sync::generateThumbParrallel</model>
-                </run>
-            </klevu_search_product_thumb>
         </jobs>
     </crontab>
     <default>

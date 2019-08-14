@@ -313,29 +313,6 @@
                         </sendlog>
                     </fields>
                 </developer>
-                <image translate="label">
-                    <label>Generate Thumbnail Image</label>
-                        <sort_order>901</sort_order>
-                        <expanded>1</expanded>
-                        <show_in_default>1</show_in_default>
-                        <show_in_website>0</show_in_website>
-                        <show_in_store>0</show_in_store>
-                        <fields>
-                            <image_thumb translate="label">
-                            <label>Product Thumbnails</label>
-                            <comment><![CDATA[Click here to create thumbnails for all your product images. Once the process
-has finnished, please synchronize all your products again (see Product
-Synchronization Settings). This is to make sure Klevu Search uses the newly
-created thumbnails instead of the original product images.]]></comment>
-                            <frontend_type>button</frontend_type>
-                            <frontend_model>klevu_search/adminhtml_form_field_image_button</frontend_model>
-                            <sort_order>310</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            </image_thumb>
-                        </fields>
-                </image>
             </groups>
         </klevu_search>
     </sections>

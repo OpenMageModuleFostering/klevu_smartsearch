@@ -1,6 +1,6 @@
 config:
   default/klevu_search/general/enabled: 1
-  default/klevu_search/general/rest_api_key: a2xldnUtMTQyNTU1MTA4OTU2NDEwNjk6S2xldnUtZmo4NzQ3cHUxMg==
+  default/klevu_search/general/test_rest_api_key: a2xldnUtMTQyNTU1MTA4OTU2NDEwNjk6S2xldnUtZmo4NzQ3cHUxMg==
   default/klevu_search/product_sync/enabled: 1
 eav:
   catalog_product:
@@ -23,22 +23,20 @@ eav:
       category_ids:
         - 2 # Default category
       price: 34
-      special_price:22
-      special_to_date:2015-03-03 01:57:22
-      special_from_date:2015-03-08 00:00:00
       tax_class_id: 2
       status: 1
       visibility: 4
-      created_at: 2007-08-29 19:56:27
-      updated_at: 2015-03-13 00:00:00
-      
+      created_at: 2015-03-06 01:57:22
+      updated_at: 2015-03-06 01:57:22
 tables:
-  klevu_search/product_sync:
+  catalogrule_product_price:
     -
-      product_id: 133
-      parent_id: 0
-      store_id: 1
-      test_mode: 0
-      last_synced_at: 0000-00-00 00:00:00
+      rule_date:2015-03-06
+      customer_group_id:0
+      product_id:133
+      rule_price:6
+      website_id:1
+      latest_start_date:2015-03-12
+      earliest_end_date:2015-03-13
 
-      
+

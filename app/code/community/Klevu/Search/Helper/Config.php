@@ -32,7 +32,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_TEST_ANALYTICS_URL = "klevu_search/general/test_analytics_url";
     const XML_PATH_JS_URL = "klevu_search/general/js_url";
     const XML_PATH_TEST_JS_URL = "klevu_search/general/test_js_url";
-    const Klevu_PRODUCT_FORCE_OLDERVERSION = 2;
+    const KLEVU_PRODUCT_FORCE_OLDERVERSION = 2;
 
     const DATETIME_FORMAT = "Y-m-d H:i:s T";
 
@@ -372,11 +372,11 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     public function isProductSyncEnabled($store_id = null) {
         $flag = $this->getProductSyncEnabledFlag($store_id);
 
-        // static::Klevu_PRODUCT_FORCE_OLDERVERSION for handling of older version of klevu 
+        // static::KLEVU_PRODUCT_FORCE_OLDERVERSION for handling of older version of klevu 
         //if (Mage::helper("klevu_search")->isProductionDomain(Mage::getBaseUrl())) {
             return in_array($flag, array(
                 Klevu_Search_Model_System_Config_Source_Yesnoforced::YES,
-                static::Klevu_PRODUCT_FORCE_OLDERVERSION
+                static::KLEVU_PRODUCT_FORCE_OLDERVERSION
             ));
         //} else {
         //    return $flag === Klevu_Search_Model_System_Config_Source_Yesnoforced::FORCED;
@@ -492,11 +492,11 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
      */
     public function isOrderSyncEnabled($store = null) {
         $flag = $this->getOrderSyncEnabledFlag($store);
-        // static::Klevu_PRODUCT_FORCE_OLDERVERSION for handling of older version of klevu
+        // static::KLEVU_PRODUCT_FORCE_OLDERVERSION for handling of older version of klevu
         //if (Mage::helper("klevu_search")->isProductionDomain(Mage::getBaseUrl())) {
             return in_array($flag, array(
                 Klevu_Search_Model_System_Config_Source_Yesnoforced::YES,
-                static::Klevu_PRODUCT_FORCE_OLDERVERSION
+                static::KLEVU_PRODUCT_FORCE_OLDERVERSION
             ));
         //} else {
             //return $flag === Klevu_Search_Model_System_Config_Source_Yesnoforced::FORCED;

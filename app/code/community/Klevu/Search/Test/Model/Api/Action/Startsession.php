@@ -4,7 +4,8 @@ class Klevu_Search_Test_Model_Api_Action_Startsession extends Klevu_Search_Test_
 
     public function testValidate() {
         $parameters = array(
-            'api_key' => "dGVzdC1hcGkta2V5"
+            'api_key' => "dGVzdC1hcGkta2V5",
+            'store'   => null
         );
 
         $response = Mage::getModel('klevu_search/api_response');

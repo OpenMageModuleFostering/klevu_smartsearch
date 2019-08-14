@@ -44,17 +44,4 @@ foreach (Mage::app()->getStores() as $store) {
 
 $mage_config->reinit();
 
-$image_thumb_table = $installer->getTable('klevu_search/image_thumb');
-$installer->run("DROP TABLE IF EXISTS `{$image_thumb_table}`");
-$installer->run("
-CREATE TABLE `{$image_thumb_table}` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `batchdata` text NOT NULL,
-  `date` timestamp NOT NULL default CURRENT_TIMESTAMP,
-  `is_processed` int(10) NOT NULL,
-   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-");
-
-
 $installer->endSetup();

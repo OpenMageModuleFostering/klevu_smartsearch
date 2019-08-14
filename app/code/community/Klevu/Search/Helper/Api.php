@@ -111,8 +111,9 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
      *                 message: message to be displayed to the user.
      */
     public function createWebstore($customer_id, Mage_Core_Model_Store $store, $test_mode = false) {
-        $name = sprintf("%s - %s - %s",
+        $name = sprintf("%s - %s - %s - %s",
             $store->getWebsite()->getName(),
+            $store->getCode(),
             $store->getName(),
             $store->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB)
         );

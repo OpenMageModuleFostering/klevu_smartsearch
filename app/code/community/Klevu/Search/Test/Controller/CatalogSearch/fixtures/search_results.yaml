@@ -1,25 +1,13 @@
 config:
   default/klevu_search/general/enabled: 1
-  default/klevu_search/general/test_mode: 1
-  default/klevu_search/general/test_rest_api_key: test-api-key
-  default/klevu_search/general/test_js_api_key: test-api-key
-  default/klevu_search/product_sync/enabled: 2
+  default/klevu_search/general/landenabled: 0
+  default/klevu_search/general/rest_api_key: a2xldnUtMTQyNTU1MTA4OTU2NDEwNjk6S2xldnUtZmo4NzQ3cHUxMg==
+  default/klevu_search/general/js_api_key: klevu-14255510895641069
+  default/klevu_search/product_sync/enabled: 1
   default/catalog/frontend/grid_per_page_values: 9,15,30
   default/catalog/frontend/grid_per_page: 9
+
 eav:
-  catalog_category:
-    - entity_id: 3
-      parent_id: 2
-      path: 1/2/3
-      position: 2
-      level: 2
-      children_count: 0
-      name: Test Category
-      url_key: test-category
-      is_active: 1
-      is_anchor: 0
-      display_mode: PRODUCTS
-      include_in_menu: 1
   catalog_product:
     - entity_id: 1
       attribute_set_id: 4

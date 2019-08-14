@@ -201,6 +201,7 @@ class Klevu_Search_Model_Api_Action_Addrecords extends Klevu_Search_Model_Api_Ac
     protected function prepareOtherAttributeToIndexParameters(&$record) {
         foreach ($record['otherAttributeToIndex'] as $key => &$value) {
             $key = $this->sanitiseOtherAttribute($key);
+            
             if(is_array($value)){
                 $label = $this->sanitiseOtherAttribute($value['label']);
                 $value = $this->sanitiseOtherAttribute($value['values']);
@@ -208,7 +209,7 @@ class Klevu_Search_Model_Api_Action_Addrecords extends Klevu_Search_Model_Api_Ac
                 $label = $this->sanitiseOtherAttribute($key);
                 $value = $this->sanitiseOtherAttribute($value);
             }
-
+            
             if (is_array($value)) {
                 $value = implode(",", $value);
             }

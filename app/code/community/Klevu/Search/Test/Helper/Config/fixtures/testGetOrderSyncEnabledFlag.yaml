@@ -1,2 +1,2 @@
 config:
-  default/klevu_search/order_sync/enabled: 2
+  default/klevu_search/order_sync/enabled: 1

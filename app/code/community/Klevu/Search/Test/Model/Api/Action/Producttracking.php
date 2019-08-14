@@ -69,7 +69,6 @@ class Klevu_Search_Test_Model_Api_Action_Producttracking extends Klevu_Search_Te
             'klevu_unit'      => 1,
             'klevu_salePrice' => 100.00,
             'klevu_currency'  => "GBP",
-            'klevu_shopperIP' => "127.0.0.1"
         );
     }
 

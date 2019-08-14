@@ -83,9 +83,9 @@ class Klevu_Search_Test_Model_Api_Action_Idsearch extends Klevu_Search_Test_Mode
 
     protected function getTestParameters() {
         return array(
-            'ticket' => 'test-search-api-key',
+            'ticket' => 'klevu-14255510895641069',
             'noOfResults' => 30,
-            'term' => 'computers',
+            'term' => 'exam',
             'paginationStartsFrom' => 0,
             'ipAddress' => '127.0.0.1',
             'klevuSort' => 'rel',

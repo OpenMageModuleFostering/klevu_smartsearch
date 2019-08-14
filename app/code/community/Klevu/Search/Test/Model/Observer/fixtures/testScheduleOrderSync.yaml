@@ -1,8 +1,8 @@
 config:
   default/klevu_search/general/enabled: 1
-  default/klevu_search/general/test_mode: 1
-  default/klevu_search/general/test_js_api_key: test-api-key
-  default/klevu_search/order_sync/enabled: 2
+  default/klevu_search/general/test_mode: 0
+  default/klevu_search/general/test_js_api_key: klevu-14255510895641069
+  default/klevu_search/order_sync/enabled: 1
 tables:
   sales_flat_order:
     -

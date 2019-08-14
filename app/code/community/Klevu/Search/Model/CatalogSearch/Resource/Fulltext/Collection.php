@@ -95,7 +95,6 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
                 'klevuSort' => $this->_getSortOrder(),
                 'enableFilters' => 'true',
                 'filterResults' => $this->_getPreparedFilters(),
-                
             );
             $this->log(Zend_Log::DEBUG, sprintf("Starting search for term: %s", $this->_getQuery()->getQueryText()));
         }
@@ -190,7 +189,7 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
 
         foreach ($this->_klevu_parent_child_ids as $item) {
 
-
+        
             if ($item['parent_id'] > 0) {
                 /** @var Mage_Catalog_Model_Product $parent */
                 $parent = $this->_items[$item['parent_id']];
@@ -205,15 +204,18 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
 
                if ($child) {
                     // Set children images on parent product
-                    if (($image = $child->getData('image')) != 'no_selection') {
+                    $image = $child->getData('image');
+                    if ($child->getData('image') != 'no_selection' && !empty($image)) {
                         $parent->setData('image', $image);
                     }
-
-                    if (($small_image = $child->getData('small_image')) != 'no_selection') {
+                    
+                    $small_image = $child->getData('small_image');
+                    if ($child->getData('small_image') != 'no_selection' && !empty($small_image)) {
                         $parent->setData('small_image', $small_image);
                     }
-
-                    if (($thumbnail = $child->getData('thumbnail')) != 'no_selection') {
+                      
+                    $thumbnail = $child->getData('thumbnail');  
+                    if ($child->getData('thumbnail') != 'no_selection' && !empty($thumbnail)) {
                         $parent->setData('thumbnail', $thumbnail);
                     }
                 }

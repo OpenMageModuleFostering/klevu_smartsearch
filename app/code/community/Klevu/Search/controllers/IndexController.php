@@ -2,34 +2,34 @@
 /**
  * Klevu FrontEnd Controller
  */
-class Klevu_Search_SearchController extends Mage_Core_Controller_Front_Action {
-    /**
-     * Genarate thumbnail using multiple curl request action
-     */
-    public function indexAction() {     
-        try {
-            $id = Mage::app()->getRequest()->getParam('id');
-            $data = Mage::getModel('klevu_search/product_sync')->getImageProcessingIds($id); 
-            foreach(unserialize($data[0]['batchdata']) as $key => $value) {
-                $product = Mage::getModel('catalog/product')->load($value);
-                $image = $product->getImage();
-                if((!empty($image)) && ($image!= "no_selection")) {
-                    Mage::getModel('klevu_search/product_sync')->thumbImage($product->getImage());
-                }
-            }
-            Mage::getModel('klevu_search/product_sync')->updateImageProcessingIds($id);
-        }
-        catch(Exception $e) {
-            Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("Image Error:\n%s", $e->getMessage()));
-        }
-        
-    }
+class Klevu_Search_IndexController extends Mage_Core_Controller_Front_Action {
+    
+    public function IndexAction() {
+      
+	  $this->loadLayout();   
+	  $this->getLayout()->getBlock("head")->setTitle($this->__("Test"));
+	        $breadcrumbs = $this->getLayout()->getBlock("breadcrumbs");
+      $breadcrumbs->addCrumb("home", array(
+                "label" => $this->__("Home"),
+                "title" => $this->__("Home"),
+                "link"  => Mage::getBaseUrl()
+		   ));
+
+      $breadcrumbs->addCrumb("Search Result", array(
+                "label" => $this->__("Search Result"),
+                "title" => $this->__("Search Result")
+		   ));
+
+      $this->renderLayout(); 
+	  
+    }  
 
     public function runexternalylogAction()
     {
         $this->loadLayout();
         $this->renderLayout();
-    }
+    }    
+     
     /**
      * Send different logs to klevu server to debug the data
      */
@@ -87,7 +87,7 @@ class Klevu_Search_SearchController extends Mage_Core_Controller_Front_Action {
                     Mage::getModel('klevu_search/product_sync')->sheduleCronExteranally($rest_api);
                     Mage::getSingleton('core/session')->addSuccess("Cron scheduled externally."); 
                 }
-                $this->_redirect('klevu/search/runexternalylog');
+                $this->_redirect('search/index/runexternalylog');
                 
         }
         catch(Exception $e) {
