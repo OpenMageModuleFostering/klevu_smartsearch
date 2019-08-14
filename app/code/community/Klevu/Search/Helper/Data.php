@@ -424,7 +424,8 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
      * @return count
      */
 	public function getPlans() {
-		$response = Mage::getModel('klevu_search/api_action_getplans')->execute(array("store"=>"magento"));
+		$extension_version = Mage::getConfig()->getModuleConfig('Klevu_Search')->version;
+		$response = Mage::getModel('klevu_search/api_action_getplans')->execute(array("store"=>"magento","extension_version" => (string)$extension_version));
 		if ($response->isSuccessful()) {
 		    $plans = $response->getData();
 			return $plans['plans']['plan'];
