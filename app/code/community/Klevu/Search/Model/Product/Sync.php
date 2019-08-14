@@ -50,6 +50,7 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             $stores = Mage::app()->getStores();
 
             foreach ($stores as $store) {
+                
                 /** @var Mage_Core_Model_Store $store */
                 $this->reset();
 
@@ -780,10 +781,11 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
         $stock_data = $this->getStockData($product_ids);
 
         $attribute_map = $this->getAttributeMap();
-        if(Mage::app()->getStore()->isFrontUrlSecure()) {
+        if($this->getStore()->isFrontUrlSecure()) {
             $base_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK,true);
             $media_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA,true);
-        }else {
+          
+       }else {
             $base_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK);
             $media_url = $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA);
         }
@@ -868,10 +870,10 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
                             Mage::getModel('klevu_search/product_sync')->thumbImage($product[$key]);
                             $imageResized = Mage::getBaseDir('media').DS."klevu_images".$product[$key];
                                 if (file_exists($imageResized)) {
-                                    if(Mage::app()->getStore()->isFrontUrlSecure()) {
-                                        $product[$key] = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA,true)."klevu_images".$product[$key];
+                                    if($this->getStore()->isFrontUrlSecure()) {
+                                        $product[$key] =  $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA,true)."klevu_images".$product[$key];
                                     } else {
-                                        $product[$key] = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA)."klevu_images".$product[$key];
+                                        $product[$key] =  $this->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA)."klevu_images".$product[$key];
                                     }
                                 }else{
                                     $product[$key] = $media_url . $product[$key];
@@ -1458,13 +1460,13 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             foreach ($collection as $attr) {
                 $attr->setStoreId($this->getStore()->getId());
                 $attribute_data[$attr->getAttributeCode()] = array(
-                    'label' => $attr->getFrontendLabel(),
+                    'label' => $attr->getStoreLabel($this->getStore()->getId()),
                     'values' => ''
                 );
 
                 if ($attr->usesSource()) {
 //                    $attribute_data[$attr->getAttributeCode()] = array();
-                    foreach($attr->getSource()->getAllOptions(false) as $option) {
+                    foreach($attr->setStoreId($this->getStore()->getId())->getSource()->getAllOptions(false) as $option) {
                         if (is_array($option['value'])) {
                             foreach ($option['value'] as $sub_option) {
                                 if(count($sub_option) > 0) {
@@ -1480,7 +1482,6 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
 
             $this->setData('attribute_data', $attribute_data);
         }
-
         // make sure the attribute exists
         if (isset($attribute_data[$code])) {
             // was $value passed a parameter?
@@ -1751,18 +1752,13 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
     public function thumbImage($image)
         {
             try {
-                $_imageUrl = Mage::getBaseDir('media').DS."catalog".DS."product".$image;
-                if(file_exists($_imageUrl)) {
-                    list($width, $height, $type, $attr)=getimagesize($_imageUrl); 
+                $baseImageUrl = Mage::getBaseDir('media').DS."catalog".DS."product".$image;
+                if(file_exists($baseImageUrl)) {
+                    list($width, $height, $type, $attr)=getimagesize($baseImageUrl); 
                     if($width > 200 && $height > 200) {
                         $imageResized = Mage::getBaseDir('media').DS."klevu_images".$image;
-                        if(!file_exists($imageResized)&& file_exists($_imageUrl)) {
-                            $imageObj = new Varien_Image($_imageUrl);
-                            $imageObj->constrainOnly(TRUE);
-                            $imageObj->keepAspectRatio(TRUE);
-                            $imageObj->keepFrame(FALSE);
-                            $imageObj->resize(200, 200);
-                            $imageObj->save($imageResized);
+                        if(!file_exists($imageResized)) {
+                            $this->thumbImageObj($baseImageUrl,$imageResized);
                         }
                     }
                 }
@@ -1771,7 +1767,23 @@ class Klevu_Search_Model_Product_Sync extends Klevu_Search_Model_Sync {
             }
     }
         
-    
+    /**
+     * Generate thumb image
+     * @param $imageUrl 
+     * @param $imageResized
+     * @return $this
+     */  
+    public function thumbImageObj($imageUrl,$imageResized)
+    {
+        $imageObj = new Varien_Image($imageUrl);
+        $imageObj->constrainOnly(TRUE);
+        $imageObj->keepAspectRatio(TRUE);
+        $imageObj->keepFrame(FALSE);
+        $imageObj->keepTransparency(true);
+        $imageObj->backgroundColor(array(255, 255, 255));
+        $imageObj->resize(200, 200);
+        $imageObj->save($imageResized);
+    }
     
     
     /**

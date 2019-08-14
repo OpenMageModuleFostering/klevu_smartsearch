@@ -37,11 +37,22 @@
                             <tr>
                                 <td class="label"><label for="userPlan"><?php echo $this->__("Choose Your  Solution:") ?><span class="required">&nbsp;<em>*</em></span></label></td>
                                 <td class="value">
-                                    <input type="radio" name="userPlan" value="free">&nbsp;Klevu BASIC (Free)&nbsp;&nbsp;
-                                    <input type="radio" name="userPlan" value="trial">&nbsp;Klevu PRO (Start your trial)
-                                    <p><a href="#" onClick="checkplan();">Click here to compare BASIC v/s PRO</a></p>
+                                    <table cellpadding="3" cellspacing="0">
+                                    <tr>
+                                        <td><input type="radio" name="userPlan" value="free">&nbsp;Klevu BASIC&nbsp;&nbsp;&nbsp;</td>
+                                        <td><input type="radio" name="userPlan" value="trial">&nbsp;Klevu PRO&nbsp;&nbsp;&nbsp;</td>
+                                        <td><input type="radio" name="userPlan" value="partnerAccount">&nbsp;Klevu Partner</td>
+                                    </tr>
+                                    </table>
+                                    <table>
+                                        <tr>
+                                            <td style="width:58%;"><p class="note" style="width:auto !important;"><a href="#" onClick="checkplan();" style="font-size:11px;">Learn more about </br> BASIC v/s PRO </a></p></td>
+                                            <td><p class="note" style="width:auto !important;">for authorized Klevu partners</p></td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
+                           
                             
                             <tr>
                                 <td class="label"><label for="contactNo"> <?php echo $this->__("Phone Number:") ?><span class="required">&nbsp;</span></label></td>

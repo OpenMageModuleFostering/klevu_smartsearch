@@ -426,6 +426,7 @@
 .kuGridView img{
         max-width:100% !important;
         max-height:140px !important;
+        height:auto;
         width:auto;
         border:none;
         outline:none;

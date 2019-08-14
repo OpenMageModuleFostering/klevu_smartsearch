@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Klevu_Search>
-            <version>1.1.16</version>
+            <version>1.1.17</version>
         </Klevu_Search>
     </modules>
     <global>
@@ -235,6 +235,7 @@
                     <model>klevu_search/order_sync::run</model>
                 </run>
             </klevu_search_order_sync>
+            
         </jobs>
     </crontab>
     <default>

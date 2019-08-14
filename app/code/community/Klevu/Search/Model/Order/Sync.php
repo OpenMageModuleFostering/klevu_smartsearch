@@ -98,54 +98,58 @@ class Klevu_Search_Model_Order_Sync extends Klevu_Search_Model_Sync {
                 $this->log(Zend_Log::INFO, "Another copy is already running. Stopped.");
                 return;
             }
+            
+            $stores = Mage::app()->getStores();
+            foreach ($stores as $store) {
+                if(Mage::helper("klevu_search/config")->isOrderSyncEnabled($store->getId())) {
+                    $this->log(Zend_Log::INFO, "Starting sync.");
+                    $items_synced = 0;
+                    $errors = 0;
 
-            $this->log(Zend_Log::INFO, "Starting sync.");
+                    $item = Mage::getModel("sales/order_item");
 
-            $items_synced = 0;
-            $errors = 0;
-
-            $item = Mage::getModel("sales/order_item");
-
-            $stmt = $this->getConnection()->query($this->getSyncQueueSelect());
-            while ($item_id = $stmt->fetchColumn()) {
-                if ($this->rescheduleIfOutOfMemory()) {
-                    return;
-                }
-
-                $item->setData(array());
-                $item->load($item_id);
-
-                if ($item->getId()) {
-                    if ($this->isEnabled($item->getStoreId())) {
-                        if ($this->getApiKey($item->getStoreId())) {
-                                $result = $this->sync($item);
-                                if ($result === true) {
-                                    $this->removeItemFromQueue($item_id);
-                                    $items_synced++;
-                                } else {
-                                    $this->log(Zend_Log::INFO, sprintf("Skipped order item %d: %s", $item_id, $result));
-                                    $errors++;
-                                }
+                    $stmt = $this->getConnection()->query($this->getSyncQueueSelect());
+                    while ($item_id = $stmt->fetchColumn()) {
+                        if ($this->rescheduleIfOutOfMemory()) {
+                            return;
                         }
-                    } else {
-                        $this->log(Zend_Log::ERR, sprintf("Skipped item %d: Order Sync is not enabled for this store.", $item_id));
-                        $this->removeItemFromQueue($item_id);
+
+                        $item->setData(array());
+                        $item->load($item_id);
+
+                        if ($item->getId()) {
+                            if ($this->isEnabled($item->getStoreId())) {
+                                if ($this->getApiKey($item->getStoreId())) {
+                                        $result = $this->sync($item);
+                                        if ($result === true) {
+                                            $this->removeItemFromQueue($item_id);
+                                            $items_synced++;
+                                        } else {
+                                            $this->log(Zend_Log::INFO, sprintf("Skipped order item %d: %s", $item_id, $result));
+                                            $errors++;
+                                        }
+                                }
+                            } else {
+                                $this->log(Zend_Log::ERR, sprintf("Skipped item %d: Order Sync is not enabled for this store.", $item_id));
+                                $this->removeItemFromQueue($item_id);
+                            }
+                        } else {
+                            $this->log(Zend_Log::ERR, sprintf("Order item %d does not exist: Removed from sync!", $item_id));
+                            $this->removeItemFromQueue($item_id);
+                            $errors++;
+                        }
                     }
-                } else {
-                    $this->log(Zend_Log::ERR, sprintf("Order item %d does not exist: Removed from sync!", $item_id));
-                    $this->removeItemFromQueue($item_id);
-                    $errors++;
+
+                    $this->log(Zend_Log::INFO, sprintf("Sync finished. %d items synced.", $items_synced));
+                    Mage::helper("klevu_search/config")->setLastOrderSyncRun();
+
+                    if ($errors) {
+                        //$this->notify(Mage::helper("klevu_search")->__("Order Sync failed to sync some of the order items. Please consult the logs for more details."));
+                    } else {
+                        // If a sync finished without errors, existing notifications no longer apply
+                        $this->deleteNotifications();
+                    }
                 }
-            }
-
-            $this->log(Zend_Log::INFO, sprintf("Sync finished. %d items synced.", $items_synced));
-            Mage::helper("klevu_search/config")->setLastOrderSyncRun();
-
-            if ($errors) {
-                //$this->notify(Mage::helper("klevu_search")->__("Order Sync failed to sync some of the order items. Please consult the logs for more details."));
-            } else {
-                // If a sync finished without errors, existing notifications no longer apply
-                $this->deleteNotifications();
             }
         } catch(Exception $e) {
             // Catch the exception that was thrown, log it, then throw a new exception to be caught the Magento cron.

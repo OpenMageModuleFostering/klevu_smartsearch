@@ -153,7 +153,7 @@ function showPopup(sUrl) {
     className: 'magento',
     url: sUrl,
     title: "Klevu Search Pro Features",
-    width: 980,
+    width: 1000,
     height: 600,
     minimizable: false,
     maximizable: false,

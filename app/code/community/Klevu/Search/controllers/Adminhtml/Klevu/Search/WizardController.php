@@ -27,15 +27,23 @@ class Klevu_Search_Adminhtml_Klevu_Search_WizardController extends Mage_Adminhtm
             $klevu_new_email = $request->getPost("klevu_new_email");
             $klevu_new_password = $request->getPost("klevu_new_password");
             $userPlan = $request->getPost("userPlan");
+            $partnerAccount = false;
             $klevu_new_url = $request->getPost("klevu_new_url");
             $merchantEmail = $request->getPost("merchantEmail");
             $contactNo = $request->getPost("countyCode")."-".$request->getPost("contactNo");
             if(!empty($klevu_new_email) && !empty($klevu_new_password) && !empty($userPlan) && !empty($klevu_new_url)
             && !empty($merchantEmail) ) {
+            
+                /* if partner account selected as UserPlan then change plan to trial*/
+                if($userPlan=="partnerAccount"){
+                   $userPlan = "trial";
+                   $partnerAccount = true;
+                }
                 $result = $api->createUser(
                     $request->getPost("klevu_new_email"),
                     $request->getPost("klevu_new_password"),
-                    $request->getPost("userPlan"),
+                    $userPlan,
+                    $partnerAccount,
                     $request->getPost("klevu_new_url"),
                     $request->getPost("merchantEmail"),
                     $contactNo

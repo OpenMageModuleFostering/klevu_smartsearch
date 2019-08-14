@@ -16,11 +16,12 @@ class Klevu_Search_Helper_Api extends Mage_Core_Helper_Abstract {
      *                 customer_id: the customer ID for the newly created user (on success only).
      *                 message:     a message to be shown to the user.
      */
-    public function createUser($email, $password, $userPlan, $url,$merchantEmail,$contactNo) {
+    public function createUser($email, $password, $userPlan, $partnerAccount, $url, $merchantEmail,$contactNo) {
         $response = Mage::getModel("klevu_search/api_action_adduser")->execute(array(
             "email"    => $email,
             "password" => $password,
             "userPlan" => $userPlan,
+            "partnerAccount" => $partnerAccount,             
             "url"      => $url,
             "merchantEmail" => $merchantEmail,
             "contactNo" => $contactNo

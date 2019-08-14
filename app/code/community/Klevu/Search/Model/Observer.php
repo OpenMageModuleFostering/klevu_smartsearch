@@ -27,14 +27,15 @@ class Klevu_Search_Model_Observer extends Varien_Object {
      * @param Varien_Event_Observer $observer
      */
     public function scheduleOrderSync(Varien_Event_Observer $observer) {
-        $model = Mage::getModel("klevu_search/order_sync");
-
-        $order = $observer->getEvent()->getOrder();
-        if ($order) {
-            $model->addOrderToQueue($order);
+        $store = Mage::app()->getStore($observer->getEvent()->getStore());
+        if(Mage::helper("klevu_search/config")->isOrderSyncEnabled($store->getId())) {
+            $model = Mage::getModel("klevu_search/order_sync");
+            $order = $observer->getEvent()->getOrder();
+            if ($order) {
+                $model->addOrderToQueue($order);
+            }
+            $model->schedule();
         }
-
-        $model->schedule();
     }
 
     /**
@@ -95,9 +96,27 @@ class Klevu_Search_Model_Observer extends Varien_Object {
      * @param Varien_Event_Observer $observer
      */
     public function createThumb(Varien_Event_Observer $observer) {
+
         $image = $observer->getEvent()->getProduct()->getImage();
         if(($image != "no_selection") && (!empty($image))) {
-          Mage::getModel("klevu_search/product_sync")->thumbImage($image);
+            try {
+                $imageResized = Mage::getBaseDir('media').DS."klevu_images".$image;
+                $baseImageUrl = Mage::getBaseDir('media').DS."catalog".DS."product".$image;
+                if(file_exists($baseImageUrl)) {
+                    list($width, $height, $type, $attr)= getimagesize($baseImageUrl); 
+                    if($width > 200 && $height > 200) {
+                            if(file_exists($imageResized)) {
+                                if (!unlink('media/klevu_images'. $image))
+                                {
+                                    Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("Image Deleting Error:\n%s", $e->getMessage()));  
+                                }
+                            }
+                            Mage::getModel("klevu_search/product_sync")->thumbImageObj($baseImageUrl,$imageResized);
+                    }
+                }
+            } catch(Exception $e) {
+                 Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("Image Error:\n%s", $e->getMessage()));
+            }
         }
     }
   
@@ -140,6 +159,7 @@ class Klevu_Search_Model_Observer extends Varien_Object {
     public function setCategoryProductsToSync(Varien_Event_Observer $observer) {
         try {
             $updatedProductsIds = $observer->getData('product_ids');
+            
             if (count($updatedProductsIds) == 0) {
                 return;
             }
