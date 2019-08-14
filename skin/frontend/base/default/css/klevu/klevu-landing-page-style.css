@@ -425,7 +425,7 @@
 /* In GRIDVIEW: thumbnail of the product */
 .kuGridView img{
         max-width:100% !important;
-        height:140px !important;
+        max-height:140px !important;
         width:auto;
         border:none;
         outline:none;

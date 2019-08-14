@@ -21,7 +21,7 @@
                             <tr>
                                 <td class="label"><label for="klevu_new_email"><?php echo $this->__("Primary Email:") ?><span class="required">&nbsp;<em>*</em></span></label>
                                 </td>
-                                <td class="value"><input type="text" name="klevu_new_email" id="klevu_new_email" class="input-text " />
+                                <td class="value"><input type="text" name="klevu_new_email" id="klevu_new_email" class="required-entry input-text" />
                                 <p class="note">For login and technical support</p></td>
                             </tr>
                             <tr>
@@ -35,12 +35,11 @@
                                 </td>
                             </tr>   
                             <tr>
-                                <td class="label"><label for="userPlan"><?php echo $this->__("Choose Your  Plan:") ?><span class="required">&nbsp;<em>*</em></span></label></td>
+                                <td class="label"><label for="userPlan"><?php echo $this->__("Choose Your  Solution:") ?><span class="required">&nbsp;<em>*</em></span></label></td>
                                 <td class="value">
-                                    <input type="radio" name="userPlan" value="free">&nbsp;Free&nbsp;&nbsp;
-                                    <input type="radio" name="userPlan" checked="checked" value="trial">&nbsp;PRO trial
-                                    <a href="#" onClick="checkplan();">what's included?</a>
-                                    <p class="note">If your store exceeds the guidelines of FREE edition, then PRO trial will be enabled.</p>
+                                    <input type="radio" name="userPlan" value="free">&nbsp;Klevu BASIC (Free)&nbsp;&nbsp;
+                                    <input type="radio" name="userPlan" value="trial">&nbsp;Klevu PRO (Start your trial)
+                                    <p><a href="#" onClick="checkplan();">Click here to compare BASIC v/s PRO</a></p>
                                 </td>
                             </tr>
                             
@@ -95,12 +94,7 @@
                     
                     </td>
                 </tr>    
-                
-                
-                
-                
             </tbody>
         </table>
     </fieldset>
 </form>
-
