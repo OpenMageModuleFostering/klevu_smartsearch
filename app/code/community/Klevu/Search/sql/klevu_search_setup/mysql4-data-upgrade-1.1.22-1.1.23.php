@@ -1,8 +1,9 @@
 <?php
 $installer = $this;
 $installer->startSetup();
-$installer->run("ALTER TABLE `klevu_product_sync` ADD `type` VARCHAR(255) NOT NULL DEFAULT 'products' AFTER `last_synced_at`");
-$installer->run("ALTER TABLE `klevu_product_sync` DROP PRIMARY KEY, ADD PRIMARY KEY(`product_id`,`parent_id`,`store_id`,`test_mode`,`type`)");
+$product_sync_data_table = $installer->getTable('klevu_search/product_sync');
+$installer->run("ALTER TABLE `{$product_sync_data_table}` ADD `type` VARCHAR(255) NOT NULL DEFAULT 'products' AFTER `last_synced_at`");
+$installer->run("ALTER TABLE `{$product_sync_data_table}` DROP PRIMARY KEY, ADD PRIMARY KEY(`product_id`,`parent_id`,`store_id`,`test_mode`,`type`)");
 try {
     $entity_type = Mage::getSingleton("eav/entity_type")->loadByCode("catalog_product");
     $entity_typeid = $entity_type->getId();

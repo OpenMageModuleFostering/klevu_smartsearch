@@ -3,14 +3,14 @@
     <tabs>
         <klevu translate="label" module="klevu_search">
             <label>Klevu</label>
-            <sort_order>0</sort_order>
+            <sort_order>100</sort_order>
         </klevu>
     </tabs>
     <sections>
         <klevu_search translate="label" module="klevu_search">
             <label>Search Configuration</label>
             <tab>klevu</tab>
-            <sort_order>0</sort_order>
+            <sort_order>300</sort_order>
             <show_in_default>1</show_in_default>
             <show_in_website>1</show_in_website>
             <show_in_store>1</show_in_store>
