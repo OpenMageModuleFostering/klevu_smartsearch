@@ -7,7 +7,6 @@ class Klevu_Search_Model_System_Config_Source_Frequency {
     const CRON_EVERY_6_HOURS = "0 */6 * * *";
     const CRON_EVERY_12_HOURS = "0 */12 * * *";
     const CRON_DAILY = "0 3 * * *";
-	const CRON_NEVER = "0 5 31 2 *";
 
     public function toOptionArray() {
         $helper = Mage::helper("klevu_search");
@@ -32,10 +31,6 @@ class Klevu_Search_Model_System_Config_Source_Frequency {
             array(
                 'label' => $helper->__("Daily"),
                 'value' => static::CRON_DAILY
-            ),
-			array(
-                'label' => $helper->__("Never"),
-                'value' => static::CRON_NEVER
             ),
         );
     }

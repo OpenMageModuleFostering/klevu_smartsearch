@@ -139,7 +139,7 @@ class Klevu_Search_Model_Api_Action_Addrecords extends Klevu_Search_Model_Api_Ac
     protected function prepareParameters(&$parameters) {
         foreach ($parameters['records'] as &$record) {
             if (isset($record['listCategory']) && is_array($record['listCategory'])) {
-                $record['listCategory'] = implode(";;", $record['listCategory']);
+                $record['listCategory'] = implode(";", $record['listCategory']);
             }
 
             if (isset($record['other']) && is_array($record['other'])) {
@@ -202,17 +202,12 @@ class Klevu_Search_Model_Api_Action_Addrecords extends Klevu_Search_Model_Api_Ac
      * @param string
      */
     protected function prepareOtherAttributeToIndexParameters(&$record) {
-		
         foreach ($record['otherAttributeToIndex'] as $key => &$value) {
             $key = $this->sanitiseOtherAttribute($key);
             
             if(is_array($value)){
-				if(isset($value['label'])) {
-					$label = $this->sanitiseOtherAttribute($value['label']);
-			    }
-				if(isset($value['values'])) {
-					$value = $this->sanitiseOtherAttribute($value['values']);
-				}
+                $label = $this->sanitiseOtherAttribute($value['label']);
+                $value = $this->sanitiseOtherAttribute($value['values']);
             }else {
                 $label = $this->sanitiseOtherAttribute($key);
                 $value = $this->sanitiseOtherAttribute($value);
@@ -221,9 +216,7 @@ class Klevu_Search_Model_Api_Action_Addrecords extends Klevu_Search_Model_Api_Ac
             if (is_array($value)) {
                 $value = implode(",", $value);
             }
-			if($key == 'created_at') {
-				$value = date('Y-m-d',strtotime(substr($value,0,strpos($value,"T"))));
-			}
+
             $value = sprintf("%s:%s:%s", $key, $label, $value);
         }
         $record['otherAttributeToIndex'] = implode(";", $record['otherAttributeToIndex']);

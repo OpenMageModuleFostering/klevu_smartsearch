@@ -6,9 +6,7 @@ class Klevu_Content_Model_Observer extends Varien_Object
         $store =  $observer->getStore();
         if(!empty($store)) {
             if (Mage::helper("content")->isCmsSyncEnabled($store->getId())) {
-				if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
-                    Mage::getModel('content/content')->schedule();
-				}
+                Mage::getModel('content/content')->schedule();
             } else {
                 Mage::getSingleton('adminhtml/session')->addError(sprintf("Klevu Search Content Sync is disabled for %s (%s).", $store->getWebsite()->getName() , $store->getName()));
             }
@@ -19,9 +17,7 @@ class Klevu_Content_Model_Observer extends Varien_Object
                     Mage::getSingleton('adminhtml/session')->addError(sprintf("Klevu Search Content Sync is disabled for %s (%s).", $store->getWebsite()->getName() , $store->getName()));
                     continue;
                 } else {
-					if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
-                        Mage::getModel('content/content')->schedule();
-                    }						
+                    Mage::getModel('content/content')->schedule();   
                 }
             }
         

@@ -34,21 +34,6 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
             return $this->getLanguageFromLocale($store->getConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_LOCALE));
         }
     }
-	
-	
-	/**
-     * Return the store timezone for the given store.
-     *
-     * @param int|Mage_Core_Model_Store $store
-     *
-     * @return string
-     */
-    function getStoreTimeZone($store = null) {
-        if ($store = Mage::app()->getStore($store)) {
-            return $store->getConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE);
-        }
-    }
-	
 
     /**
      * Check if the given domain is considered to be a valid domain for a production environment.
@@ -225,15 +210,11 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
             foreach ($groupProductIds as $ids) {
                 foreach ($ids as $id) {
                     $groupProduct = Mage::getModel('catalog/product')->load($id);
-					$stockItem = $groupProduct->getStockItem();
-					if($stockItem->getIsInStock())
-					{
-						if($config->isTaxEnabled($store->getId())) {
-							$groupPrices[] = Mage::helper("tax")->getPrice($groupProduct, $groupProduct->getFinalPrice(), true, null, null, null, $store,false);
-						} else {
-							$groupPrices[] = $groupProduct->getFinalPrice();
-						}
-					}
+                    if($config->isTaxEnabled($store->getId())) {
+                        $groupPrices[] = Mage::helper("tax")->getPrice($groupProduct, $groupProduct->getFinalPrice(), true, null, null, null, $store,false);
+                    } else {
+                        $groupPrices[] = $groupProduct->getFinalPrice();
+                    }
                 }
             }
             asort($groupPrices);
@@ -288,15 +269,11 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
             foreach ($groupProductIds as $ids) {
                 foreach ($ids as $id) {
                     $groupProduct = Mage::getModel('catalog/product')->load($id);
-					$stockItem = $groupProduct->getStockItem();
-					if($stockItem->getIsInStock())
-					{
-						if($config->isTaxEnabled($store->getId())) {
-							$groupPrices[] = Mage::helper("tax")->getPrice($groupProduct, $groupProduct->getPrice(), true, null, null, null, $store,false);
-						} else {
-							$groupPrices[] = $groupProduct->getPrice();
-						}
-					}
+                    if($config->isTaxEnabled($store->getId())) {
+                        $groupPrices[] = Mage::helper("tax")->getPrice($groupProduct, $groupProduct->getPrice(), true, null, null, null, $store,false);
+                    } else {
+                        $groupPrices[] = $groupProduct->getPrice();
+                    }
                 }
             }
             asort($groupPrices);
@@ -319,20 +296,6 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
         $attribute = $attributecollection->getFirstItem();
         return $attribute->getAttributeId();
     }
-	
-	
-	/**
-     * Get the is exclude attribute id
-     *
-     * @return string
-     */
-    public function getIsExcludeAttributeId(){
-        $entity_type = Mage::getSingleton("eav/entity_type")->loadByCode("catalog_category");
-        $entity_typeid = $entity_type->getId();
-        $attributecollection = Mage::getModel("eav/entity_attribute")->getCollection()->addFieldToFilter("entity_type_id", $entity_typeid)->addFieldToFilter("attribute_code", "exclude_in_search");
-        $attribute = $attributecollection->getFirstItem();
-        return $attribute->getAttributeId();
-    }
     
     /**
      * Get the is visibility attribute id
@@ -346,133 +309,16 @@ class Klevu_Search_Helper_Data extends Mage_Core_Helper_Abstract {
         $attribute = $attributecollection->getFirstItem();
         return $attribute->getAttributeId();
     }
-	
-    /**
-     * Get the client ip address
-     *
-     * @return string
-     */
-	public function getIp() {
-		$ip = '';
-		if (!empty($_SERVER['HTTP_CLIENT_IP']))
-			$ip = $_SERVER['HTTP_CLIENT_IP'];
-		else if(!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-			$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-		else if(!empty($_SERVER['HTTP_X_FORWARDED']))
-			$ip = $_SERVER['HTTP_X_FORWARDED'];
-		else if(!empty($_SERVER['HTTP_FORWARDED_FOR']))
-			$ip = $_SERVER['HTTP_FORWARDED_FOR'];
-		else if(!empty($_SERVER['HTTP_FORWARDED']))
-			$ip = $_SERVER['HTTP_FORWARDED'];
-		else if(!empty($_SERVER['REMOTE_ADDR']))
-			$ip = $_SERVER['REMOTE_ADDR'];
-		else
-			$ip = 'UNKNOWN';
-	 
-		return $ip;
+    
+    public function getIp() {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+        
+        return $ip;
     }
-	
-	/**
-     * Get the currecy switcher data
-     *
-     * @return string
-     */
-	public function getCurrencyData() {
-	    $baseCurrencyCode = Mage::app()->getBaseCurrencyCode();
-		$currentCurrencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
-		if($baseCurrencyCode != $currentCurrencyCode){
-	        $availableCurrencies = Mage::app()->getStore()->getAvailableCurrencyCodes();
-            $currencyRates = Mage::getModel('directory/currency')->getCurrencyRates($baseCurrencyCode, array_values($availableCurrencies));
-	        if(count($availableCurrencies) > 1) { 
-                foreach($currencyRates as $key => &$value){
-					$Symbol = Mage::app()->getLocale()->currency($key)->getSymbol() ? Mage::app()->getLocale()->currency($key)->getSymbol() : Mage::app()->getLocale()->currency($key)->getShortName();
-			        $value = sprintf("'%s':'%s:%s'", $key,$value,$Symbol);
-		        }
-		        $currency = implode(",",$currencyRates);
-			    return $currency;
-		    }
-	    }
-	}
-	
-	/**
-     * Get total product count which have visibility catalog search
-	 * /Not visible individual/search/enable in Magento
-     *
-     * @return count
-     */
-	public function getTotalProductCount() {
-		$stores = Mage::app()->getStores();
-		foreach ($stores as $store) {
-			$products = Mage::getResourceModel('catalog/product_collection')
-			->setStore($store->getId())
-			->addStoreFilter($store->getId())
-			->addAttributeToFilter('status', Mage_Catalog_Model_Product_Status::STATUS_ENABLED)
-			->addAttributeToFilter('visibility', array('in' => array(
-				Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
-				Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH,
-				Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-			)));
-			$count[] = $products->getSize();
-	    }
-		return min($count);
-    }
-	
-	/**
-     * Get Klevu plans
-	 * /Not visible individual/search/enable in Magento
-     *
-     * @return count
-     */
-	public function getPlans() {
-		$extension_version = Mage::getConfig()->getModuleConfig('Klevu_Search')->version;
-		$response = Mage::getModel('klevu_search/api_action_getplans')->execute(array("store"=>"magento","extension_version" => (string)$extension_version));
-		if ($response->isSuccessful()) {
-		    $plans = $response->getData();
-			return $plans['plans']['plan'];
-		} else {
-			return;
-		}
-    }
-	
-	/**
-     * Check for invalid index
-     *
-     * @return bool
-     */
-	public function getStatuOfIndexing() {
-		if(Mage::getEdition() != "Enterprise") {
-			$flat_status = Mage::helper('klevu_search/config')->getFlatCatalogStatus();
-			$allIndex= Mage::getSingleton('index/indexer')->getProcessesCollection();
-			foreach ($allIndex as $index) {
-				if($flat_status == 0) {
-					if(strpos($index->getIndexerCode(), "flat") === false) 
-					{
-						if($index->getStatus() == "require_reindex") {
-							return true;
-						}
-					}
-				} else {
-					if($index->getStatus() == "require_reindex") {
-						return true;
-					}	
-				}
-			}	
-		}
-    }
-	
-	/**
-     * get for base domain
-     *
-     * @return string
-     */
-	public function getBaseDomain() {
-		$base_domain = Mage::app()->getStore(Mage::helper('klevu_search/config')->scopeId())->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK);
-		if(!empty($base_domain)) {
-			$base_url_value = parse_url($base_domain);
-			return $base_url_value['host'];
-		}
-    }
-	
-	
-	
 }

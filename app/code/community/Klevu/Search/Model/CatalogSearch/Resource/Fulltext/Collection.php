@@ -38,7 +38,7 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
      * @var SimpleXMLElement
      */
     protected $_klevu_response_xml;
-    
+
     /**
      * Prepare the search query for Klevu Search API Call
      *
@@ -117,7 +117,6 @@ class Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection extends Mage
             'klevu_totalResults' => $noOfTrackingResults,
             'klevu_shopperIP' => Mage::helper('klevu_search')->getIp(),
             'klevu_typeOfQuery' => $queryType,
-			'klevu_sessionId' => session_id(),
             'Klevu_typeOfRecord' => 'KLEVU_PRODUCT'
         );
         $this->log(Zend_Log::DEBUG, sprintf("Search tracking for term: %s", $this->_query));

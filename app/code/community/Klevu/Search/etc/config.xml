@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Klevu_Search>
-            <version>1.2.15</version>
+            <version>1.2.2</version>
         </Klevu_Search>
     </modules>
     <global>
@@ -49,7 +49,6 @@
             </klevu_search_setup>
         </resources>
         <events>
-			
             <admin_system_config_changed_section_klevu_search>
                 <observers>
                     <klevu_search_removetest>
@@ -240,15 +239,6 @@
                     </catalogruleexpiryupdateafter>
                 </observers>
             </catalogrule_after_apply>
-			<cataloginventory_stock_item_save_commit_after>
-			    <observers>
-                    <cataloginventory_stock_item_update>
-                        <type>singleton</type> 
-                        <class>klevu_search/observer</class>
-                        <method>updateStock</method>
-                    </cataloginventory_stock_item_update>
-                </observers>
-			</cataloginventory_stock_item_save_commit_after>
         </events>
     </global>
     <admin>
@@ -323,8 +313,8 @@
                 <hostname>box.klevu.com</hostname>
                 <rest_hostname>rest.klevu.com</rest_hostname>
                 <test_hostname>box.klevu.com</test_hostname>
-                <test_cloud_search_url>eucs4.klevu.com</test_cloud_search_url>
-                <cloud_search_url>eucs5.klevu.com</cloud_search_url>
+                <test_cloud_search_url>eucs.klevu.com</test_cloud_search_url>
+                <cloud_search_url>eucs.klevu.com</cloud_search_url>
                 <analytics_url>stats.klevu.com</analytics_url>
                 <test_analytics_url>stats.klevu.com</test_analytics_url>
                 <js_url>js.klevu.com</js_url>
@@ -348,18 +338,11 @@
             <developer>
                 <force_log>1</force_log>
                 <enable_external_call>0</enable_external_call>
-				<collection_method>0</collection_method>
                 <!-- Log level default is set in the backend model and getter as it uses Zend_Log constants -->
             </developer>
             <order_sync>
                 <enabled>1</enabled>
             </order_sync>
-			<image_setting>
-				<enabled>0</enabled>
-			</image_setting>
-			<description_setting>
-				<enabled>0</enabled>
-			</description_setting>
         </klevu_search>
     </default>
     <phpunit>

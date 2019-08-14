@@ -40,12 +40,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     const XML_PATH_RATING = "klevu_search/general/rating_flag";
     const XML_PATH_UPGRADE_FEATURES = "klevu_search/general/upgrade_features";
     const XML_PATH_UPGRADE_TIRES_URL = "klevu_search/general/tiers_url";
-	const XML_PATH_CONFIG_IMAGE_FLAG = "klevu_search/image_setting/enabled";
-	const XML_PATH_CONFIG_SYNC_FREQUENCY = "klevu_search/product_sync/frequency";
-	const XML_PATH_COLLETION_METHOD = "klevu_search/developer/collection_method";
-    const XML_PATH_TRIGGER_OPTIONS = "klevu_search/developer/trigger_option";
-	const XML_PATH_DESCRIPTION_FLAG = "klevu_search/description_setting/enabled";
-	const XML_PATH_FLAT_CATALOG = "catalog/frontend/flat_catalog_product";
+
     const DATETIME_FORMAT = "Y-m-d H:i:s T";
     protected $_klevu_features_response;
     protected $_klevu_enabled_feature_response;
@@ -83,7 +78,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
      * @return bool
      */
     public function isTaxEnabled($store_id = null) {
-        $flag =  Mage::getStoreConfig(static::XML_PATH_TAX_ENABLED, $store_id);
+        $flag =  Mage::getStoreConfigFlag(static::XML_PATH_TAX_ENABLED, $store_id);
         return in_array($flag, array(
                 Klevu_Search_Model_System_Config_Source_Taxoptions::YES
         ));
@@ -433,18 +428,18 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
      * @return bool
      */
     public function isProductSyncEnabled($store_id = null) {
-		
-			$flag = $this->getProductSyncEnabledFlag($store_id);
 
-			// static::KLEVU_PRODUCT_FORCE_OLDERVERSION for handling of older version of klevu 
-			//if (Mage::helper("klevu_search")->isProductionDomain(Mage::getBaseUrl())) {
-				return in_array($flag, array(
-					Klevu_Search_Model_System_Config_Source_Yesnoforced::YES,
-					static::KLEVU_PRODUCT_FORCE_OLDERVERSION
-				));
-			//} else {
-			//    return $flag === Klevu_Search_Model_System_Config_Source_Yesnoforced::FORCED;
-			//}
+        $flag = $this->getProductSyncEnabledFlag($store_id);
+
+        // static::KLEVU_PRODUCT_FORCE_OLDERVERSION for handling of older version of klevu 
+        //if (Mage::helper("klevu_search")->isProductionDomain(Mage::getBaseUrl())) {
+            return in_array($flag, array(
+                Klevu_Search_Model_System_Config_Source_Yesnoforced::YES,
+                static::KLEVU_PRODUCT_FORCE_OLDERVERSION
+            ));
+        //} else {
+        //    return $flag === Klevu_Search_Model_System_Config_Source_Yesnoforced::FORCED;
+        //}
     }
 
     /**
@@ -633,30 +628,24 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
                 "name",
                 "sku",
                 "image",
-				"small_image",
-				"media_gallery",
                 "description",
                 "short_description",
                 "price",
                 "price",
                 "tax_class_id",
                 "weight",
-                "rating",
-                "msrp"),
+                "rating"),
             "klevu_attribute" => array(
                 "name",
                 "sku",
                 "image",
-				"image",
-				"image",
                 "desc",
                 "shortDesc",
                 "price",
                 "salePrice",
                 "salePrice",
                 "weight",
-                "rating",
-                "msrp"
+                "rating"
             )
         );
     }
@@ -784,7 +773,7 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
     /**
      * get feature update
      *
-     * @return string 
+     * @return bool 
      */
     public function getFeaturesUpdate($elemnetID) {
         try {
@@ -846,96 +835,4 @@ class Klevu_Search_Helper_Config extends Mage_Core_Helper_Abstract {
         $this->setStoreConfig(static::XML_PATH_UPGRADE_FEATURES,$value,$store);
     }
     
-	/**
-     * Return the configuration flag for sending config image.
-     *
-     * @param Mage_Core_Model_Store|int $store
-     *
-     * @return bool
-     */
-	public function isUseConfigImage($store=null){
-		return Mage::getStoreConfigFlag(static::XML_PATH_CONFIG_IMAGE_FLAG, $store);
-	}
-	
-	
-    /**
-     * Return the klevu cron stettings.
-     *
-     * @return bool
-     */
-	public function isExternalCronEnabled(){
-		if(Mage::getStoreConfig(static::XML_PATH_CONFIG_SYNC_FREQUENCY) == "0 5 31 2 *") {
-			return false;
-		} else {
-			return true;
-		}
-	}
-	
-	/**
-     * Return the minimum log level configured. Default to Zend_Log::WARN.
-     *
-     * @return int
-     */
-    public function getCollectionMethod() {
-       return Mage::getStoreConfigFlag(static::XML_PATH_COLLETION_METHOD);
-    }
-
-     /**
-     * save trigger option value
-     *
-     * @param string $value
-     *
-     * @return
-     */
-    public function saveTrigger($value) {
-        $this->setGlobalConfig(static::XML_PATH_TRIGGER_OPTIONS, $value);
-        return $this;
-    }
-
-    /**
-     * Return the configuration flag for trigger options.
-     *
-     *
-     * @return int
-     */
-    public function getTriggerOptionsFlag() {
-        return Mage::getStoreConfig(static::XML_PATH_TRIGGER_OPTIONS);
-    }
-	
-	
-	/**
-     * Return the configuration flag for sending config image.
-     *
-     * @param Mage_Core_Model_Store|int $store
-     *
-     * @return bool
-     */
-	public function isUseConfigDescription($store=null){
-		return Mage::getStoreConfigFlag(static::XML_PATH_DESCRIPTION_FLAG, $store);
-	}
-	
-	/**
-     * Return the store from api key.
-     *
-     * @param $klevuApi
-     *
-     * @return int
-     */
-	public function scopeId($klevuApi){
-		$configs =  Mage::getModel('core/config_data')->getCollection()
-                    ->addFieldToFilter('value',$this->getJsApiKey())->load();
-        $scope_id = $configs->getData();
-		return intval($scope_id[0]['scope_id']);
-	}
-	
-	/**
-     * Return the store from api key.
-     *
-     * @return bool
-     */
-	public function getFlatCatalogStatus(){
-		return Mage::getStoreConfig(static::XML_PATH_FLAT_CATALOG);
-
-	}
-
 }

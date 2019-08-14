@@ -15,14 +15,11 @@ class Klevu_Search_Model_Observer extends Varien_Object {
      */
     public function scheduleProductSync(Varien_Event_Observer $observer) {
         if (!$this->getIsProductSyncScheduled()) {
-		    if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
-				Mage::getModel("klevu_search/product_sync")->schedule();
-			}
+            Mage::getModel("klevu_search/product_sync")->schedule();
             $this->setIsProductSyncScheduled(true);
         }
     }
-	
-	
+
     /**
      * Schedule an Order Sync to run immediately. If the observed event
      * contains an order, add it to the sync queue before scheduling.
@@ -30,20 +27,14 @@ class Klevu_Search_Model_Observer extends Varien_Object {
      * @param Varien_Event_Observer $observer
      */
     public function scheduleOrderSync(Varien_Event_Observer $observer) {
-		try {
-            $store = Mage::app()->getStore($observer->getEvent()->getStore());
-			if(Mage::helper("klevu_search/config")->isOrderSyncEnabled($store->getId())) {
-				$model = Mage::getModel("klevu_search/order_sync");
-				$order = $observer->getEvent()->getOrder();
-				if ($order) {
+        $store = Mage::app()->getStore($observer->getEvent()->getStore());
+        if(Mage::helper("klevu_search/config")->isOrderSyncEnabled($store->getId())) {
+            $model = Mage::getModel("klevu_search/order_sync");
+            $order = $observer->getEvent()->getOrder();
+            if ($order) {
                 $model->addOrderToQueue($order);
-				}
-				$model->schedule();
-			}
-		} catch(Exception $e) {
-            // Catch the exception that was thrown, log it.
-            Mage::helper('klevu_search')->log(Zend_Log::CRIT, sprintf("Exception thrown in %s::%s - %s", __CLASS__, __METHOD__, $e->getMessage()));
-            
+            }
+            $model->schedule();
         }
     }
 
@@ -96,9 +87,7 @@ class Klevu_Search_Model_Observer extends Varien_Object {
         $sync->markAllProductsForUpdate($store);
 
         if (!$this->getIsProductSyncScheduled()) {
-			if(Mage::helper("klevu_search/config")->isExternalCronEnabled()) {
-                $sync->schedule();
-			}
+            $sync->schedule();
             $this->setIsProductSyncScheduled(true);
         }
     }
@@ -114,7 +103,6 @@ class Klevu_Search_Model_Observer extends Varien_Object {
                 if(count($parentIds) > 0 && !empty($parentIds)) {
                     Mage::getModel("klevu_search/product_sync")->updateSpecificProductIds($parentIds);
                 }
-				
             }
         } catch(Exception $e) {
             Mage::helper('klevu_search')->log(Zend_Log::DEBUG, sprintf("error while updating bundle product id :\n%s", $e->getMessage()));
@@ -148,8 +136,7 @@ class Klevu_Search_Model_Observer extends Varien_Object {
      * @param Varien_Event_Observer $observer
      */
     public function applyLandingPageModelRewrites(Varien_Event_Observer $observer) {
-
-        if (Mage::helper("klevu_search/config")->isLandingEnabled() == 1 && Mage::helper("klevu_search/config")->isExtensionConfigured()) {
+        if (Mage::helper("klevu_search/config")->isLandingEnabled()) {
 
             $rewrites = array(
                 "global/models/catalogsearch_resource/rewrite/fulltext_collection"         => "Klevu_Search_Model_CatalogSearch_Resource_Fulltext_Collection",
@@ -231,9 +218,6 @@ class Klevu_Search_Model_Observer extends Varien_Object {
         }
     }
 	
-	/**
-     * Update the product ids to sync with klevu for rule 
-     */
 	public function catalogRulePriceChange(Varien_Event_Observer $observer){
 		try {
 			$obj = $observer->getEvent()->getRule();
@@ -259,23 +243,5 @@ class Klevu_Search_Model_Observer extends Varien_Object {
             Mage::helper('klevu_search')->log(Zend_Log::CRIT, sprintf("Exception thrown in %s::%s - %s", __CLASS__, __METHOD__, $e->getMessage()));
         }
 	}
-	
-	/**
-     * Update the product id when stock item changed through out api
-     */
-	public function updateStock($observer){
-		try {
-			if (version_compare(Mage::getVersion(), '1.7.0.2', '<=') !== true) {
-				$productId = $observer->getEvent()->getItem()->getProductId();
-				if(!empty($productId)) {
-					Mage::getModel("klevu_search/product_sync")->updateSpecificProductIds(array($productId));
-				}
-			}
-		} catch(Exception $e) {
-			Mage::helper('klevu_search')->log(Zend_Log::CRIT, sprintf("Exception thrown in %s::%s - %s", __CLASS__, __METHOD__, $e->getMessage()));
-		}
-    }
-	
-	
     
 }

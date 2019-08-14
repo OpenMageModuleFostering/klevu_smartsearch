@@ -47,18 +47,16 @@ class Klevu_Search_Model_Api_Response_Search extends Klevu_Search_Model_Api_Resp
     protected function _prepareFilters($filters) {
         $prepared_filters = array();
         $i = 0;
-		if(!empty($filters)){
-	        foreach ($filters as $filter) {
-	            $prepared_filters[$i] = $filter['@attributes'];
-	            $options = isset($filter['option']) ? $filter['option'] : $filter[0];
-	            if(!empty($options)){
-	            	foreach ($options as $option) {
-	                $prepared_filters[$i]['options'][] = isset($option['@attributes']) ? $option['@attributes'] : $option;
-	            	}				
-				}
-	            $i++;
+
+        foreach ($filters as $filter) {
+            $prepared_filters[$i] = $filter['@attributes'];
+            $options = isset($filter['option']) ? $filter['option'] : $filter[0];
+            foreach ($options as $option) {
+                $prepared_filters[$i]['options'][] = isset($option['@attributes']) ? $option['@attributes'] : $option;
             }
-		}
+            $i++;
+        }
+
         return $prepared_filters;
     }
 
