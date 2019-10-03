@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Klevu_SmartSearch",
+    "name": "OpenMageModuleFostering\/Klevu_SmartSearch",
     "type": "magento-module",
     "license": "Commercial",
     "homepage": "",
     "description": "Klevu Search replaces the default Magento search functiontality with a intelligent, dynamic, lightning fast search provided by Klevu.",
     "authors": [
-    {
-        "name": "Klevu",
-        "email": "niraj.aswani@klevu.com"
-    }
-],
+        {
+            "name": "Klevu",
+            "email": "niraj.aswani@klevu.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
